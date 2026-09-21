@@ -83,19 +83,19 @@ Affichage du stock en équivalent jours de couverture par macronutriment (calori
 │   Stocks     │─────►│                  │◄─────│ Agriculture  │
 │ QR / BDD     │      │     NUTRIX       │      │ récoltes     │
 └──────────────┘      │                  │      └──────────────┘
-                       │ Planificateur    │
+                      │ Planificateur    │
 ┌──────────────┐      │ alimentaire      │      ┌──────────────┐
 │ Journal      │─────►│                  │─────►│ Production   │
 │ repas        │      └────────┬─────────┘      │ nécessaire   │
-└──────────────┘               │                 └──────────────┘
-                                ▼
-                       ┌──────────────────┐
-                       │ Prévisions 8 sem │
-                       └────────┬─────────┘
-                                ▼
-                       ┌──────────────────┐
-                       │ Alertes / crises │
-                       └──────────────────┘
+└──────────────┘               │                └──────────────┘
+                               ▼
+                      ┌──────────────────┐
+                      │ Prévisions 8 sem │
+                      └────────┬─────────┘
+                               ▼
+                      ┌──────────────────┐
+                      │ Alertes / crises │
+                      └──────────────────┘
 ```
 
 ## Stack technique
