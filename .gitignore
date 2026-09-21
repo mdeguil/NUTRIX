@@ -1,1 +1,23 @@
 doc/**
+
+# PHP / Composer
+vendor/
+
+# Node / React
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env.local
+.env.*.local
+
+# Symfony
+/var/
+
+# OS
+.DS_Store
+Thumbs.db
