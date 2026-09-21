@@ -1,0 +1,31 @@
+services:
+  database:
+    image: mysql:8.0
+    container_name: nutrix_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: nutrix
+      MYSQL_USER: nutrix
+      MYSQL_PASSWORD: nutrix
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - nutrix_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:latest
+    container_name: nutrix_adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - database
+
+volumes:
+  nutrix_db_data:
