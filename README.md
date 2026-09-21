@@ -22,6 +22,7 @@ Le système doit pouvoir fonctionner **hors ligne**, conformément à la contrai
 - [Architecture](#architecture)
 - [Stack technique](#stack-technique)
 - [Modules](#modules)
+- [Démarrage rapide](#démarrage-rapide)
 
 ---
 
@@ -131,3 +132,99 @@ Affichage du stock en équivalent jours de couverture par macronutriment (calori
 | Réserves stratégiques | Répartition consommation / sécurité / urgence |
 | Simulation | Scénarios de crise et recalcul d'autonomie |
 | Planificateur de repas | Génération de menus sous contraintes |
+
+---
+
+## Démarrage rapide
+
+Le projet est découpé en parties indépendantes :
+
+| Dossier | Rôle | Où ça tourne |
+|---|---|---|
+| `BDD/` (racine, `docker-compose.yml`) | Base de données MySQL + Adminer | Docker |
+| `API/NUTRIX-API/` | API Symfony + API Platform | En local sur la machine |
+
+### Prérequis
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- PHP ≥ 8.2 et [Composer](https://getcomposer.org/)
+- [Symfony CLI](https://symfony.com/download)
+
+### Via les scripts (le plus rapide)
+
+Deux scripts à la racine automatisent tout ce qui suit (Bash `.sh` pour Git Bash/WSL, PowerShell `.ps1` pour un terminal Windows natif) :
+
+```bash
+./init.sh   # premiere installation : Docker, composer install, .env.local, migrations
+./start.sh  # demarrage au quotidien : Docker + serveur Symfony
+```
+
+```powershell
+.\init.ps1
+.\start.ps1
+```
+
+`init` ne touche pas à un `.env.local` déjà existant. Le détail manuel des étapes est ci-dessous si besoin de dépanner.
+
+### 1. Cloner le projet
+
+```bash
+git clone https://github.com/mdeguil/NUTRIX.git
+cd NUTRIX
+```
+
+### 2. Lancer la base de données (Docker)
+
+```bash
+docker compose up -d
+```
+
+Ça démarre deux conteneurs :
+- **MySQL** sur le port `3306` (base `nutrix`, user/mdp `nutrix`/`nutrix`)
+- **Adminer** sur http://localhost:8081 (interface web pour consulter la base)
+
+Vérifier que la base est bien démarrée :
+
+```bash
+docker compose ps
+```
+
+### 3. Configurer et lancer l'API Symfony
+
+```bash
+cd API/NUTRIX-API
+composer install
+```
+
+Copier le fichier gabarit en `.env.local` (non versionné) :
+
+```bash
+cp .env.local.example .env.local
+```
+
+Vérifier la connexion à la base :
+
+```bash
+php bin/console doctrine:query:sql "SELECT 1"
+```
+
+Appliquer les migrations existantes :
+
+```bash
+php bin/console doctrine:migrations:migrate
+```
+
+Démarrer le serveur :
+
+```bash
+symfony server:start -d --no-tls
+```
+
+L'API est alors disponible sur http://127.0.0.1:8000/api.
+
+### Arrêter l'environnement
+
+```bash
+symfony server:stop
+docker compose down
+```
