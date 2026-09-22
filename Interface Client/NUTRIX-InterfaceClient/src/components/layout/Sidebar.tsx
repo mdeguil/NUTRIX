@@ -7,7 +7,6 @@ const navItems = [
   { to: '/journal', icon: '◷', label: 'Journal alimentaire' },
   { to: '/stock', icon: '▦', label: 'Stock' },
   { to: '/previsionnel', icon: '◻', label: 'Prévisionnel' },
-  { to: '/simulation', icon: '◬', label: 'Simulation de crise' },
   { to: '/planificateur', icon: '◈', label: 'Planificateur' },
   { to: '/agriculture', icon: '◑', label: 'Agriculture' },
 ];
