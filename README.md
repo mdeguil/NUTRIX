@@ -277,3 +277,18 @@ docker compose down
 ```
 
 (`Ctrl+C` suffit si tout a été lancé via `./start.sh` / `.\start.ps1`, qui arrête aussi le serveur Symfony automatiquement.)
+
+## CI
+
+Une CI GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push/PR vers `main` :
+
+- **API Symfony** : install des dépendances, lint PHP et YAML, migrations sur une base MySQL de test, exécution des tests (`php bin/phpunit`)
+- **Front React** : install, `eslint`, `npm run build`
+
+Pour lancer les tests de l'API en local, une base `nutrix_test` dédiée est nécessaire (créée automatiquement par le script d'init Docker `BDD/init/01-test-database.sql` sur un volume neuf) :
+
+```bash
+cd API/NUTRIX-API
+php bin/console doctrine:migrations:migrate --no-interaction --env=test
+php bin/phpunit
+```
