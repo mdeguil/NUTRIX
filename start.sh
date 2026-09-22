@@ -5,10 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$ROOT_DIR/API/NUTRIX-API"
 FRONT_DIR="$ROOT_DIR/Interface Client/NUTRIX-InterfaceClient"
 
-echo "==> Demarrage de la base de donnees (Docker)"
-cd "$ROOT_DIR"
-docker compose up -d
-
 echo "==> Demarrage du serveur Symfony (arriere-plan)"
 cd "$API_DIR"
 symfony server:start -d --no-tls

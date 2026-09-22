@@ -141,13 +141,14 @@ Le projet est découpé en parties indépendantes :
 
 | Dossier | Rôle | Où ça tourne |
 |---|---|---|
-| `BDD/` (racine, `docker-compose.yml`) | Base de données MySQL + Adminer | Docker |
+| `BDD/` | Modélisation (MCD/MLD) | — (base réelle hébergée, pas de conteneur local) |
 | `API/NUTRIX-API/` | API Symfony + API Platform | En local sur la machine |
 | `Interface Client/NUTRIX-InterfaceClient/` | Application React + Vite | En local sur la machine |
 
+**Pas de base de données locale** : tout le monde se connecte à la même base MySQL mutualisée chez l'hébergeur. Demande les identifiants à l'équipe avant de commencer.
+
 ### Prérequis
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - PHP ≥ 8.2 et [Composer](https://getcomposer.org/)
 - [Symfony CLI](https://symfony.com/download)
 - Node.js et npm
@@ -157,8 +158,8 @@ Le projet est découpé en parties indépendantes :
 Deux scripts à la racine automatisent tout ce qui suit (Bash `.sh` pour Git Bash/WSL, PowerShell `.ps1` pour un terminal Windows natif) :
 
 ```bash
-./init.sh   # premiere installation : Docker, composer install, .env.local, migrations, npm install
-./start.sh  # demarrage au quotidien : Docker + serveur Symfony (arriere-plan) + front React (Ctrl+C pour tout arreter)
+./init.sh   # premiere installation : composer install, .env.local, migrations, npm install
+./start.sh  # demarrage au quotidien : serveur Symfony (arriere-plan) + front React (Ctrl+C pour tout arreter)
 ```
 
 ```powershell
@@ -166,7 +167,7 @@ Deux scripts à la racine automatisent tout ce qui suit (Bash `.sh` pour Git Bas
 .\start.ps1
 ```
 
-`init` ne touche pas à un `.env.local` déjà existant. Le détail manuel des étapes est ci-dessous si besoin de dépanner.
+`init` ne touche pas à un `.env.local` déjà existant. La première fois, il faudra renseigner le `DATABASE_URL` de la base hébergée dans `API/NUTRIX-API/.env.local` avant que le script puisse continuer. Le détail manuel des étapes est ci-dessous si besoin de dépanner.
 
 ### 1. Cloner le projet
 
@@ -175,30 +176,14 @@ git clone https://github.com/mdeguil/NUTRIX.git
 cd NUTRIX
 ```
 
-### 2. Lancer la base de données (Docker)
-
-```bash
-docker compose up -d
-```
-
-Ça démarre deux conteneurs :
-- **MySQL** sur le port `3306` (base `nutrix`, user/mdp `nutrix`/`nutrix`)
-- **Adminer** sur http://localhost:8081 (interface web pour consulter la base)
-
-Vérifier que la base est bien démarrée :
-
-```bash
-docker compose ps
-```
-
-### 3. Configurer et lancer l'API Symfony
+### 2. Configurer et lancer l'API Symfony
 
 ```bash
 cd API/NUTRIX-API
 composer install
 ```
 
-Copier le fichier gabarit en `.env.local` (non versionné) :
+Copier le fichier gabarit en `.env.local` (non versionné) et renseigner le `DATABASE_URL` fourni par l'équipe (base hébergée) :
 
 ```bash
 cp .env.local.example .env.local
@@ -224,7 +209,7 @@ symfony server:start -d --no-tls
 
 L'API est alors disponible sur http://127.0.0.1:8000/api.
 
-### 4. Lancer le front React
+### 3. Lancer le front React
 
 ```bash
 cd "Interface Client/NUTRIX-InterfaceClient"
@@ -273,7 +258,6 @@ curl -X POST http://127.0.0.1:8000/api/register \
 
 ```bash
 symfony server:stop
-docker compose down
 ```
 
 (`Ctrl+C` suffit si tout a été lancé via `./start.sh` / `.\start.ps1`, qui arrête aussi le serveur Symfony automatiquement.)
@@ -285,10 +269,13 @@ Une CI GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push/PR ver
 - **API Symfony** : install des dépendances, lint PHP et YAML, migrations sur une base MySQL de test, exécution des tests (`php bin/phpunit`)
 - **Front React** : install, `eslint`, `npm run build`
 
-Pour lancer les tests de l'API en local, une base `nutrix_test` dédiée est nécessaire (créée automatiquement par le script d'init Docker `BDD/init/01-test-database.sql` sur un volume neuf) :
+La base MySQL utilisée par la CI est un conteneur **jetable, propre à GitHub Actions** (`services:` dans `ci.yml`) — elle n'a aucun rapport avec la base hébergée utilisée en dev, et disparaît à la fin de chaque run. Aucune installation locale n'est requise pour ça.
+
+Pour lancer les tests de l'API en local, il faut une base `nutrix_test` séparée de la base de dev partagée (car les tests suppriment/recréent des données). Selon ce que permet l'hébergeur, ça peut être une base supplémentaire sur le même compte, ou à défaut s'appuyer uniquement sur la CI pour la suite de tests complète :
 
 ```bash
 cd API/NUTRIX-API
+php bin/console doctrine:database:create --if-not-exists --env=test
 php bin/console doctrine:migrations:migrate --no-interaction --env=test
 php bin/phpunit
 ```

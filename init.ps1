@@ -4,19 +4,6 @@ $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ApiDir = Join-Path $RootDir "API\NUTRIX-API"
 $FrontDir = Join-Path $RootDir "Interface Client\NUTRIX-InterfaceClient"
 
-Write-Host "==> Demarrage de la base de donnees (Docker)"
-Set-Location $RootDir
-docker compose up -d
-
-Write-Host "==> Attente que MySQL soit pret..."
-$status = ""
-while ($status -ne "healthy") {
-    Start-Sleep -Seconds 2
-    $status = docker inspect --format='{{.State.Health.Status}}' nutrix_mysql 2>$null
-    Write-Host "    ... statut: $status"
-}
-Write-Host "==> MySQL est pret"
-
 Write-Host "==> Installation des dependances Symfony"
 Set-Location $ApiDir
 composer install
@@ -29,6 +16,9 @@ if (-not (Test-Path ".env.local")) {
     Add-Content ".env.local" "APP_SECRET=$appSecret"
     Add-Content ".env.local" "JWT_PASSPHRASE=$jwtPassphrase"
     Set-Content ".env.test.local" "JWT_PASSPHRASE=$jwtPassphrase"
+    Write-Host ""
+    Write-Host "    !!! Renseigne le DATABASE_URL (base hebergee) dans API/NUTRIX-API/.env.local avant de continuer !!!"
+    Write-Host ""
 } else {
     Write-Host "==> .env.local existe deja, on ne le touche pas"
 }
@@ -52,12 +42,11 @@ if (Test-Path "migrations\Version*.php") {
     Write-Host "==> Aucune migration pour le moment (pas encore d'entite creee)"
 }
 
-Write-Host "==> Chargement des fixtures (donnees de demonstration)"
-php bin/console doctrine:fixtures:load --no-interaction
-
 Write-Host "==> Installation des dependances du front React"
 Set-Location $FrontDir
 npm install
 
 Write-Host ""
 Write-Host "Projet initialise. Lance .\start.ps1 pour demarrer le serveur."
+Write-Host "(la base est partagee via l'hebergeur : les fixtures ne sont PAS rechargees automatiquement,"
+Write-Host " car 'doctrine:fixtures:load' vide la base avant de la repeupler. Ne le lance qu'en connaissance de cause.)"

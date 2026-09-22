@@ -4,10 +4,6 @@ $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ApiDir = Join-Path $RootDir "API\NUTRIX-API"
 $FrontDir = Join-Path $RootDir "Interface Client\NUTRIX-InterfaceClient"
 
-Write-Host "==> Demarrage de la base de donnees (Docker)"
-Set-Location $RootDir
-docker compose up -d
-
 Write-Host "==> Demarrage du serveur Symfony (arriere-plan)"
 Set-Location $ApiDir
 symfony server:start -d --no-tls

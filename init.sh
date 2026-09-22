@@ -5,17 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$ROOT_DIR/API/NUTRIX-API"
 FRONT_DIR="$ROOT_DIR/Interface Client/NUTRIX-InterfaceClient"
 
-echo "==> Demarrage de la base de donnees (Docker)"
-cd "$ROOT_DIR"
-docker compose up -d
-
-echo "==> Attente que MySQL soit pret..."
-until [ "$(docker inspect --format='{{.State.Health.Status}}' nutrix_mysql 2>/dev/null)" = "healthy" ]; do
-    sleep 2
-    echo "    ... toujours en attente"
-done
-echo "==> MySQL est pret"
-
 echo "==> Installation des dependances Symfony"
 cd "$API_DIR"
 composer install
@@ -26,6 +15,9 @@ if [ ! -f .env.local ]; then
     JWT_PASSPHRASE_VALUE="$(php -r 'echo bin2hex(random_bytes(16));')"
     { echo "APP_SECRET=$(php -r 'echo bin2hex(random_bytes(16));')"; echo "JWT_PASSPHRASE=$JWT_PASSPHRASE_VALUE"; } >> .env.local
     echo "JWT_PASSPHRASE=$JWT_PASSPHRASE_VALUE" > .env.test.local
+    echo ""
+    echo "    !!! Renseigne le DATABASE_URL (base hebergee) dans API/NUTRIX-API/.env.local avant de continuer !!!"
+    echo ""
 else
     echo "==> .env.local existe deja, on ne le touche pas"
 fi
@@ -48,12 +40,11 @@ else
     echo "==> Aucune migration pour le moment (pas encore d'entite creee)"
 fi
 
-echo "==> Chargement des fixtures (donnees de demonstration)"
-php bin/console doctrine:fixtures:load --no-interaction
-
 echo "==> Installation des dependances du front React"
 cd "$FRONT_DIR"
 npm install
 
 echo ""
 echo "Projet initialise. Lance ./start.sh pour demarrer le serveur."
+echo "(la base est partagee via l'hebergeur : les fixtures ne sont PAS rechargees automatiquement,"
+echo " car 'doctrine:fixtures:load' vide la base avant de la repeupler. Ne le lance qu'en connaissance de cause.)"
