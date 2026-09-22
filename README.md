@@ -234,6 +234,41 @@ npm run dev
 
 Le front lit l'URL de l'API depuis la variable `VITE_API_URL` (fichier `.env`, déjà configurée sur `http://127.0.0.1:8000`). Il est alors disponible sur http://localhost:5173.
 
+### Authentification (JWT)
+
+L'API est protégée par JWT (`lexik/jwt-authentication-bundle`). Trois rôles existent : `ROLE_ADMIN`, `ROLE_OCCUPANT`, `ROLE_FERME`.
+
+Comptes de démo (créés par les fixtures, mot de passe `password123` pour les trois) :
+
+| Username | Rôle |
+|---|---|
+| `admin` | ROLE_ADMIN |
+| `occupant` | ROLE_OCCUPANT |
+| `ferme` | ROLE_FERME |
+
+**Se connecter** (retourne un token) :
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"occupant","password":"password123"}'
+```
+
+**Appeler l'API avec le token** :
+
+```bash
+curl http://127.0.0.1:8000/api/me \
+  -H "Authorization: Bearer <token>"
+```
+
+**S'inscrire** (auto-inscription limitée à `ROLE_OCCUPANT` et `ROLE_FERME` — `ROLE_ADMIN` s'attribue manuellement, ex. via les fixtures) :
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"nouveau","password":"password123","role":"ROLE_OCCUPANT"}'
+```
+
 ### Arrêter l'environnement
 
 ```bash

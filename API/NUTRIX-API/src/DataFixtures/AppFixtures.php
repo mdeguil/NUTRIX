@@ -2,16 +2,24 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    public function __construct(private readonly UserPasswordHasherInterface $passwordHasher)
+    {
+    }
+
     public function load(ObjectManager $manager): void
     {
         /** @var Connection $connection */
         $connection = $manager->getConnection();
+
+        $this->loadUsers($manager);
 
         $this->clear($connection);
 
@@ -149,6 +157,30 @@ class AppFixtures extends Fixture
             ['Id_Equipage' => 3, 'Id_ALLERGENE' => 1],
             ['Id_Equipage' => 4, 'Id_ALLERGENE' => 3],
         ]);
+    }
+
+    private function loadUsers(ObjectManager $manager): void
+    {
+        foreach ($manager->getRepository(User::class)->findAll() as $existingUser) {
+            $manager->remove($existingUser);
+        }
+        $manager->flush();
+
+        $demoUsers = [
+            ['username' => 'admin', 'role' => 'ROLE_ADMIN'],
+            ['username' => 'occupant', 'role' => 'ROLE_OCCUPANT'],
+            ['username' => 'ferme', 'role' => 'ROLE_FERME'],
+        ];
+
+        foreach ($demoUsers as $demoUser) {
+            $user = new User();
+            $user->setUsername($demoUser['username']);
+            $user->setRoles([$demoUser['role']]);
+            $user->setPassword($this->passwordHasher->hashPassword($user, 'password123'));
+            $manager->persist($user);
+        }
+
+        $manager->flush();
     }
 
     private function clear(Connection $connection): void
