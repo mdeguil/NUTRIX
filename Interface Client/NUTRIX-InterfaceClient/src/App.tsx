@@ -16,7 +16,6 @@ import Journal from './pages/Journal/Journal';
 import StockList from './pages/Stock/StockList';
 import StockDetail from './pages/Stock/StockDetail';
 import Previsionnel from './pages/Previsionnel/Previsionnel';
-import Simulation from './pages/Simulation/Simulation';
 import Planificateur from './pages/Planificateur/Planificateur';
 import Agriculture from './pages/Agriculture/Agriculture';
 
@@ -34,7 +33,6 @@ function App() {
         <Route path="/stock" element={<StockList />} />
         <Route path="/stock/:id" element={<StockDetail />} />
         <Route path="/previsionnel" element={<Previsionnel />} />
-        <Route path="/simulation" element={<Simulation />} />
         <Route path="/planificateur" element={<Planificateur />} />
         <Route path="/agriculture" element={<Agriculture />} />
       </Route>

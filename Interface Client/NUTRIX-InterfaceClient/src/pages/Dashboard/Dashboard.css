@@ -1,0 +1,298 @@
+/* ==========================================================================
+   DASHBOARD (NUTRIX — Design Naturel & Épuré)
+   ========================================================================== */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--evergreen-border);
+}
+
+.dashboard__title {
+  font-family: var(--font-title);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--evergreen);
+  margin: 0 0 6px;
+  letter-spacing: 1px;
+}
+
+.dashboard__subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Sections */
+.dashboard__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard__section-title {
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mint-leaf);
+  margin: 0;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   JAUGE CIRCULAIRE — CALORIES (Nouveau design Consommés / Restants / Objectif)
+   -------------------------------------------------------------------------- */
+.circular-card {
+  background: var(--evergreen-surface);
+  border: 1px solid var(--evergreen-border);
+  border-radius: 14px;
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 48px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.circular-card__gauge-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-gauge__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circular-gauge__bg {
+  fill: none;
+  stroke: rgba(116, 198, 157, 0.1);
+  stroke-width: 14;
+}
+
+.circular-gauge__fill {
+  fill: none;
+  stroke: var(--sea-green);
+  stroke-width: 14;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.circular-gauge__content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.circular-gauge__value {
+  font-family: var(--font-title);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--frosted-mint);
+  line-height: 1;
+}
+
+.circular-gauge__unit {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--mint-leaf);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.circular-gauge__percent {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: rgba(116, 198, 157, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 6px;
+}
+
+/* Summary Box Grid */
+.circular-card__summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.summary-box {
+  background: rgba(8, 28, 21, 0.6);
+  border: 1px solid var(--evergreen-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.summary-box__label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mint-leaf);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-box__value {
+  font-family: var(--font-title);
+  font-size: 26px;
+  color: var(--frosted-mint);
+  line-height: 1.1;
+}
+
+.summary-box__value--remaining {
+  color: var(--mint-leaf);
+}
+
+.summary-box__unit {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   JAUGES LINÉAIRES — MACRONUTRIMENTS
+   -------------------------------------------------------------------------- */
+.dashboard__grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.dashboard__grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+
+  .dashboard__grid-3,
+  .dashboard__grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .circular-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 28px;
+  }
+
+  .circular-card__summary {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+}
+
+.macro-card {
+  background: var(--evergreen-surface);
+  border: 1px solid var(--evergreen-border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.macro-card:hover {
+  border-color: var(--mint-leaf-border);
+  transform: translateY(-2px);
+}
+
+.macro-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.macro-card__title {
+  font-family: var(--font-subtitle);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--frosted-mint);
+}
+
+.macro-card__percentage {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mint-leaf);
+  background: var(--mint-leaf-subtle);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--evergreen-border);
+}
+
+.macro-card__values {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.macro-card__current {
+  font-family: var(--font-subtitle);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--frosted-mint);
+}
+
+.macro-card__unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mint-leaf);
+}
+
+.macro-card__target {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Linear bar track & fill */
+.macro-card__bar-track {
+  height: 10px;
+  width: 100%;
+  background: rgba(116, 198, 157, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.macro-card__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sea-green) 0%, var(--mint-leaf) 100%);
+  border-radius: 999px;
+  transition: width 0.8s ease-in-out;
+}

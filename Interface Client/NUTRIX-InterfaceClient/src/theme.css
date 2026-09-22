@@ -6,53 +6,66 @@
   /* ------------------------------------------------------------------------
      1. Couleurs officielles de la charte graphique
      ------------------------------------------------------------------------ */
-  --frosted-mint: #d8f3dc; /* Fond clair / Textes clairs */
-  --mint-leaf:    #74c69d; /* Accent & sous-titres */
-  --sea-green:    #40916c; /* Primaire */
-  --evergreen:    #081c15; /* Fond sombre principal */
+  --frosted-mint: #d8f3dc;
+  /* Fond clair / Textes clairs */
+  --mint-leaf: #74c69d;
+  /* Accent & sous-titres */
+  --sea-green: #40916c;
+  /* Primaire */
+  --evergreen: #081c15;
+  /* Fond sombre principal */
 
   /* ------------------------------------------------------------------------
      2. Nuances naturelles & Adoucies (Sans effets néon / cyans artificiels)
      ------------------------------------------------------------------------ */
-  --evergreen-dark:      #05130e;
-  --evergreen-surface:   #0e261d;
-  --evergreen-card:      rgba(14, 38, 29, 0.85);
-  --evergreen-border:    rgba(116, 198, 157, 0.15);
-  
-  --mint-leaf-subtle:    rgba(116, 198, 157, 0.08);
-  --mint-leaf-border:    rgba(116, 198, 157, 0.25);
-  --sea-green-hover:     #357a5b;
+  --evergreen-dark: #05130e;
+  --evergreen-surface: #0e261d;
+  --evergreen-card: rgba(14, 38, 29, 0.85);
+  --evergreen-border: rgba(116, 198, 157, 0.15);
+
+  --mint-leaf-subtle: rgba(116, 198, 157, 0.08);
+  --mint-leaf-border: rgba(116, 198, 157, 0.25);
+  --sea-green-hover: #357a5b;
 
   /* Expressif & Alertes adoucies */
   --color-alert-warning: #e9c46a;
-  --color-alert-danger:  #e76f51;
-  --color-alert-info:    #74c69d;
+  --color-alert-danger: #e76f51;
+  --color-alert-info: #74c69d;
 
   /* ------------------------------------------------------------------------
      3. Aliases Sémantiques
      ------------------------------------------------------------------------ */
-  --bg-app:             var(--evergreen-dark);
-  --bg-surface:         var(--evergreen-surface);
-  --bg-card:            var(--evergreen-card);
-  --border-color:       var(--evergreen-border);
+  --bg-app:
+    /*var(--evergreen-dark);*/
+    var(--frosted-mint);
+  --bg-surface:
+    /*var(--evergreen-surface);*/
+    var(--frosted-mint);
+  --bg-card:
+    /*var(--evergreen-card);*/
+    var(--frosted-mint);
+  --border-color:
+    /*var(--evergreen-border);*/
+    var(--frosted-mint);
 
-  --color-primary:      var(--sea-green);
-  --color-accent:       var(--mint-leaf);
+  --color-primary: var(--sea-green);
+  --color-accent: var(--mint-leaf);
   --color-accent-light: var(--frosted-mint);
 
-  --color-text-title:   var(--frosted-mint);
+  --color-text-title: var(--evergreen);
   --color-text-subtitle: var(--mint-leaf);
-  --color-text-body:    #c5e3cc; /* Frosted mint adouci pour une excellente lisibilité */
-  --color-text-muted:   #8db89a;
+  --color-text-body: #c5e3cc;
+  /* Frosted mint adouci pour une excellente lisibilité */
+  --color-text-muted: #8db89a;
   --color-text-inverse: var(--evergreen);
 
   /* ------------------------------------------------------------------------
      4. Typographie Humaine & Lisible
      ------------------------------------------------------------------------ */
-  --font-title:    'Oswald', sans-serif;
+  --font-title: 'Oswald', sans-serif;
   --font-subtitle: 'Inter', sans-serif;
-  --font-body:     'Noto Serif', serif;
-  --font-ui:       'Inter', sans-serif;
+  --font-body: 'Noto Serif', serif;
+  --font-ui: 'Inter', sans-serif;
 
   /* Global base */
   font-family: var(--font-body);
@@ -61,24 +74,37 @@
 }
 
 /* Base resets & typography */
-h1, h2, h3, .font-title {
+h1,
+h2,
+h3,
+.font-title {
   font-family: var(--font-title);
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--color-text-title);
 }
 
-h4, h5, h6, .font-subtitle {
+h4,
+h5,
+h6,
+.font-subtitle {
   font-family: var(--font-subtitle);
   font-weight: 600;
   color: var(--color-text-subtitle);
 }
 
-p, body, .font-body {
+p,
+body,
+.font-body {
   font-family: var(--font-body);
   line-height: 1.6;
+  color: grey;
 }
 
-button, input, select, textarea, .font-ui {
+button,
+input,
+select,
+textarea,
+.font-ui {
   font-family: var(--font-ui);
 }

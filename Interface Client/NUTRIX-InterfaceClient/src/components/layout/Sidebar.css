@@ -97,6 +97,26 @@
   border-top: 1px solid var(--evergreen-border);
 }
 
+.sidebar__logout_btn {
+  font-family: var(--font-subtitle);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: rgba(230, 74, 74, 0.9);
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar__logout_btn:hover {
+  background: var(--mint-leaf-subtle);
+  color: var(--frosted-mint);
+  transform: translateX(2px);
+}
+
 .sidebar__status {
   font-family: var(--font-ui);
   font-size: 12px;
