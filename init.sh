@@ -21,11 +21,22 @@ cd "$API_DIR"
 composer install
 
 if [ ! -f .env.local ]; then
-    echo "==> Creation de .env.local depuis le gabarit"
+    echo "==> Creation de .env.local depuis le gabarit (+ secrets locaux generes)"
     cp .env.local.example .env.local
+    JWT_PASSPHRASE_VALUE="$(php -r 'echo bin2hex(random_bytes(16));')"
+    { echo "APP_SECRET=$(php -r 'echo bin2hex(random_bytes(16));')"; echo "JWT_PASSPHRASE=$JWT_PASSPHRASE_VALUE"; } >> .env.local
+    echo "JWT_PASSPHRASE=$JWT_PASSPHRASE_VALUE" > .env.test.local
 else
     echo "==> .env.local existe deja, on ne le touche pas"
 fi
+
+if [ ! -f .env.test.local ]; then
+    echo "==> Creation de .env.test.local (JWT_PASSPHRASE synchronisee avec .env.local)"
+    grep "^JWT_PASSPHRASE=" .env.local > .env.test.local
+fi
+
+echo "==> Generation des cles JWT (si absentes)"
+php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
 echo "==> Verification de la connexion a la base"
 php bin/console doctrine:query:sql "SELECT 1" > /dev/null

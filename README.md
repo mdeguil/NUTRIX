@@ -292,3 +292,18 @@ cd API/NUTRIX-API
 php bin/console doctrine:migrations:migrate --no-interaction --env=test
 php bin/phpunit
 ```
+
+### Secrets requis pour la CI
+
+`APP_SECRET` et `JWT_PASSPHRASE` ne sont jamais commités (voir section Sécurité ci-dessous). La CI a donc besoin de ses propres valeurs, à définir une fois dans **Settings → Secrets and variables → Actions** du repo GitHub :
+
+- `APP_SECRET` : une chaîne aléatoire (ex. générée avec `php -r "echo bin2hex(random_bytes(16));"`)
+- `JWT_PASSPHRASE` : idem, une autre chaîne aléatoire
+
+Sans ces secrets, le job `api` échoue avec une erreur `Environment variable not found`.
+
+## Sécurité
+
+- `API/NUTRIX-API/.env` (committé) ne contient **aucun secret réel** — `APP_SECRET` et `JWT_PASSPHRASE` doivent être définis dans `.env.local` (non versionné).
+- `./init.sh` / `.\init.ps1` génèrent automatiquement ces secrets et les clés JWT (`config/jwt/*.pem`, non versionnées) lors de la première initialisation.
+- `.env.test.local` (non versionné) contient la même `JWT_PASSPHRASE` que `.env.local`, car Symfony ignore volontairement `.env.local` en environnement de test — sans ce fichier, `php bin/phpunit` ne peut pas déchiffrer la clé JWT locale.

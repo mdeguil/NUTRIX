@@ -13,6 +13,9 @@ jobs:
     defaults:
       run:
         working-directory: API/NUTRIX-API
+    env:
+      APP_SECRET: ${{ secrets.APP_SECRET }}
+      JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
 
     services:
       mysql:
