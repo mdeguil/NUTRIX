@@ -3,6 +3,7 @@ set -e
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$ROOT_DIR/API/NUTRIX-API"
+FRONT_DIR="$ROOT_DIR/Interface Client/NUTRIX-InterfaceClient"
 
 echo "==> Demarrage de la base de donnees (Docker)"
 cd "$ROOT_DIR"
@@ -35,6 +36,13 @@ if ls migrations/Version*.php >/dev/null 2>&1; then
 else
     echo "==> Aucune migration pour le moment (pas encore d'entite creee)"
 fi
+
+echo "==> Chargement des fixtures (donnees de demonstration)"
+php bin/console doctrine:fixtures:load --no-interaction
+
+echo "==> Installation des dependances du front React"
+cd "$FRONT_DIR"
+npm install
 
 echo ""
 echo "Projet initialise. Lance ./start.sh pour demarrer le serveur."
