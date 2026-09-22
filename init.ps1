@@ -38,6 +38,9 @@ if (Test-Path "migrations\Version*.php") {
     Write-Host "==> Aucune migration pour le moment (pas encore d'entite creee)"
 }
 
+Write-Host "==> Chargement des fixtures (donnees de demonstration)"
+php bin/console doctrine:fixtures:load --no-interaction
+
 Write-Host "==> Installation des dependances du front React"
 Set-Location $FrontDir
 npm install

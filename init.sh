@@ -37,6 +37,9 @@ else
     echo "==> Aucune migration pour le moment (pas encore d'entite creee)"
 fi
 
+echo "==> Chargement des fixtures (donnees de demonstration)"
+php bin/console doctrine:fixtures:load --no-interaction
+
 echo "==> Installation des dependances du front React"
 cd "$FRONT_DIR"
 npm install
