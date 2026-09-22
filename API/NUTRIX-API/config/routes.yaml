@@ -9,3 +9,9 @@
 
 controllers:
     resource: routing.controllers
+
+# Route "vide" requise par json_login : le firewall intercepte la requete
+# avant que le controleur ne soit resolu, aucune action n'est donc executee ici.
+api_login:
+    path: /api/login
+    methods: [POST]
