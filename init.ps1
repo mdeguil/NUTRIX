@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ApiDir = Join-Path $RootDir "API\NUTRIX-API"
+$FrontDir = Join-Path $RootDir "Interface Client\NUTRIX-InterfaceClient"
 
 Write-Host "==> Demarrage de la base de donnees (Docker)"
 Set-Location $RootDir
@@ -36,6 +37,10 @@ if (Test-Path "migrations\Version*.php") {
 } else {
     Write-Host "==> Aucune migration pour le moment (pas encore d'entite creee)"
 }
+
+Write-Host "==> Installation des dependances du front React"
+Set-Location $FrontDir
+npm install
 
 Write-Host ""
 Write-Host "Projet initialise. Lance .\start.ps1 pour demarrer le serveur."

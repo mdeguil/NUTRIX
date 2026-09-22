@@ -143,20 +143,22 @@ Le projet est découpé en parties indépendantes :
 |---|---|---|
 | `BDD/` (racine, `docker-compose.yml`) | Base de données MySQL + Adminer | Docker |
 | `API/NUTRIX-API/` | API Symfony + API Platform | En local sur la machine |
+| `Interface Client/NUTRIX-InterfaceClient/` | Application React + Vite | En local sur la machine |
 
 ### Prérequis
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - PHP ≥ 8.2 et [Composer](https://getcomposer.org/)
 - [Symfony CLI](https://symfony.com/download)
+- Node.js et npm
 
 ### Via les scripts (le plus rapide)
 
 Deux scripts à la racine automatisent tout ce qui suit (Bash `.sh` pour Git Bash/WSL, PowerShell `.ps1` pour un terminal Windows natif) :
 
 ```bash
-./init.sh   # premiere installation : Docker, composer install, .env.local, migrations
-./start.sh  # demarrage au quotidien : Docker + serveur Symfony
+./init.sh   # premiere installation : Docker, composer install, .env.local, migrations, npm install
+./start.sh  # demarrage au quotidien : Docker + serveur Symfony (arriere-plan) + front React (Ctrl+C pour tout arreter)
 ```
 
 ```powershell
@@ -222,9 +224,21 @@ symfony server:start -d --no-tls
 
 L'API est alors disponible sur http://127.0.0.1:8000/api.
 
+### 4. Lancer le front React
+
+```bash
+cd "Interface Client/NUTRIX-InterfaceClient"
+npm install
+npm run dev
+```
+
+Le front lit l'URL de l'API depuis la variable `VITE_API_URL` (fichier `.env`, déjà configurée sur `http://127.0.0.1:8000`). Il est alors disponible sur http://localhost:5173.
+
 ### Arrêter l'environnement
 
 ```bash
 symfony server:stop
 docker compose down
 ```
+
+(`Ctrl+C` suffit si tout a été lancé via `./start.sh` / `.\start.ps1`, qui arrête aussi le serveur Symfony automatiquement.)
