@@ -1,0 +1,108 @@
+/* ==========================================================================
+   SIDEBAR (NUTRIX — Design Naturel & Épuré)
+   ========================================================================== */
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: var(--evergreen);
+  border-right: 1px solid var(--evergreen-border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Brand Logo */
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--evergreen-border);
+}
+
+.sidebar__logo-img {
+  height: 36px;
+  width: auto;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar__logo-img:hover {
+  opacity: 0.9;
+}
+
+/* Navigation Links */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 12px;
+  flex: 1;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-subtitle);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
+}
+
+.sidebar__link:hover {
+  background: var(--mint-leaf-subtle);
+  color: var(--frosted-mint);
+  transform: translateX(2px);
+}
+
+.sidebar__link--active {
+  background: rgba(64, 145, 108, 0.25);
+  color: var(--frosted-mint);
+  border-left: 3px solid var(--sea-green);
+  font-weight: 600;
+  padding-left: 13px;
+}
+
+.sidebar__icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  color: var(--mint-leaf);
+}
+
+.sidebar__link--active .sidebar__icon {
+  color: var(--frosted-mint);
+}
+
+.sidebar__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer status */
+.sidebar__footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--evergreen-border);
+}
+
+.sidebar__status {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--mint-leaf);
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

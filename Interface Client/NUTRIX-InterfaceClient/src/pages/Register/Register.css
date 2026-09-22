@@ -1,0 +1,138 @@
+/* ==========================================================================
+   REGISTER PAGE (NUTRIX — Design Naturel & Épuré)
+   ========================================================================== */
+
+.register {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 40%, rgba(64, 145, 108, 0.08) 0%, transparent 65%),
+              var(--evergreen-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.register__card {
+  background: var(--evergreen-surface);
+  border: 1px solid var(--evergreen-border);
+  border-radius: 14px;
+  padding: 44px 38px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.register__brand {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.register__logo-img {
+  height: 44px;
+  width: auto;
+}
+
+.register__subtitle {
+  font-family: var(--font-subtitle);
+  font-size: 13px;
+  color: var(--mint-leaf);
+  letter-spacing: 0.3px;
+  margin: 0 0 28px;
+  opacity: 0.9;
+}
+
+/* Form */
+.register__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.register__field label {
+  font-family: var(--font-subtitle);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--mint-leaf);
+  text-transform: uppercase;
+}
+
+.register__field input {
+  background: rgba(8, 28, 21, 0.6);
+  border: 1px solid var(--evergreen-border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: var(--frosted-mint);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.register__field input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.register__field input:focus {
+  border-color: var(--sea-green);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.2);
+}
+
+.register__btn {
+  display: block;
+  margin-top: 6px;
+  padding: 12px;
+  background: var(--sea-green);
+  color: #ffffff;
+  font-family: var(--font-subtitle);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.register__btn:hover {
+  background: var(--sea-green-hover);
+  transform: translateY(-1px);
+}
+
+.register__back_btn {
+  display: block;
+  padding: 11px;
+  background: transparent;
+  color: var(--frosted-mint);
+  border: 1px solid var(--evergreen-border);
+  font-family: var(--font-subtitle);
+  font-weight: 500;
+  font-size: 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.register__back_btn:hover {
+  background: var(--mint-leaf-subtle);
+  border-color: var(--mint-leaf);
+}
+
+.register__version {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+  margin-top: 28px;
+}

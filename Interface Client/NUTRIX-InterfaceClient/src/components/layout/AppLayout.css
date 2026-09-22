@@ -1,0 +1,24 @@
+/* ==========================================================================
+   APP LAYOUT (NUTRIX — Design Naturel & Épuré)
+   ========================================================================== */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-app);
+}
+
+.app-layout__main {
+  flex: 1;
+  margin-left: 250px; /* sidebar width */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-layout__content {
+  flex: 1;
+  padding: 32px 36px;
+  color: var(--color-text-body);
+  font-family: var(--font-body);
+}

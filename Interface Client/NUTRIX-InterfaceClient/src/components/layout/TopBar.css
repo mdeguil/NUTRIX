@@ -1,0 +1,68 @@
+/* ==========================================================================
+   TOPBAR (NUTRIX — Design Naturel & Épuré)
+   ========================================================================== */
+
+.topbar {
+  height: 64px;
+  background: rgba(8, 28, 21, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--evergreen-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar__title {
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--frosted-mint);
+  margin: 0;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.topbar__date {
+  font-family: var(--font-subtitle);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.topbar__badge {
+  font-family: var(--font-subtitle);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.topbar__badge--ok {
+  background: rgba(64, 145, 108, 0.2);
+  color: var(--frosted-mint);
+  border: 1px solid var(--sea-green);
+}
+
+.topbar__badge--alert {
+  background: rgba(233, 196, 106, 0.15);
+  color: var(--color-alert-warning);
+  border: 1px solid rgba(233, 196, 106, 0.3);
+}
+
+.topbar__badge--critical {
+  background: rgba(231, 111, 81, 0.15);
+  color: var(--color-alert-danger);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+}
