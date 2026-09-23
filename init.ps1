@@ -42,6 +42,9 @@ if (Test-Path "migrations\Version*.php") {
     Write-Host "==> Aucune migration pour le moment (pas encore d'entite creee)"
 }
 
+Write-Host "==> Prechauffage du cache de la doc API (evite un 500 par timeout au premier acces a /api/docs)"
+php bin/console api:openapi:export --output=var/openapi.json | Out-Null
+
 Write-Host "==> Installation des dependances du front React"
 Set-Location $FrontDir
 npm install

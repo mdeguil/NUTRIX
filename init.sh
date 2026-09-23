@@ -40,6 +40,9 @@ else
     echo "==> Aucune migration pour le moment (pas encore d'entite creee)"
 fi
 
+echo "==> Prechauffage du cache de la doc API (evite un 500 par timeout au premier acces a /api/docs)"
+php bin/console api:openapi:export --output=var/openapi.json > /dev/null
+
 echo "==> Installation des dependances du front React"
 cd "$FRONT_DIR"
 npm install
