@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'RECETTE_MOUVEMENT_STOCK')]
+#[ORM\Table(name: 'Asso_11')]
 #[ApiResource(
     uriTemplate: '/recette_mouvement_stocks/{recetteId}/{mouvementStockId}',
     uriVariables: [

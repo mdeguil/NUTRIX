@@ -81,7 +81,7 @@ class MoteurCalculIntegrationTest extends KernelTestCase
 
         self::assertEquals($this->donneesFixtures(), $enBase);
         self::assertSame(MoteurTestCase::DATE_REFERENCE, $enBase->aujourdhui->format('Y-m-d'), 'date fournie par l\'horloge');
-        self::assertFalse($enBase->planningOccupantLie);
+        self::assertTrue($enBase->planningOccupantLie, 'PLANNING_REPAS_OCCUPANT.Id_PLANNING_REPAS ajoute (gap #10 corrige)');
         self::assertNull($enBase->alimentAllergenes, 'table ALIMENT_ALLERGENE absente du schéma');
     }
 
@@ -113,8 +113,8 @@ class MoteurCalculIntegrationTest extends KernelTestCase
         $r = $this->moteur->genererPlanning($entree);
         self::assertCount(12, $r['planning_repas_ids']); // 4 créneaux × 3 groupes
         self::assertSame(16, $this->compter('PLANNING_REPAS'));
-        self::assertFalse($r['occupants_enregistres'], 'PLANNING_REPAS_OCCUPANT sans Id_PLANNING_REPAS');
-        self::assertContains('schema', array_column($r['alertes'], 'type'));
+        self::assertTrue($r['occupants_enregistres'], 'PLANNING_REPAS_OCCUPANT.Id_PLANNING_REPAS ajoute (gap #10 corrige)');
+        self::assertNotContains('schema', array_column($r['alertes'], 'type'));
 
         $lignes = $this->connexion->fetchAllAssociative('SELECT date_, type_repas, Id_Recette, portions_prevues FROM PLANNING_REPAS WHERE date_ = ? ORDER BY Id_PLANNING_REPAS', ['2026-09-25']);
         self::assertCount(12, $lignes);

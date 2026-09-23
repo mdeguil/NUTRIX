@@ -381,7 +381,7 @@ class PlanningCalculator
 
             // Tirage pondéré par le score parmi les K meilleures.
             $total = array_sum(array_map(static fn ($s) => max(0.001, $s['score']), $top));
-            $tirage = $aleatoire->getFloat(0, $total);
+            $tirage = self::tirageFloat($aleatoire, $total);
             $choisi = $top[count($top) - 1];
             foreach ($top as $s) {
                 $tirage -= max(0.001, $s['score']);
@@ -397,6 +397,16 @@ class PlanningCalculator
         }
 
         return null;
+    }
+
+    /**
+     * Flottant uniforme dans [0, $max[ tiré depuis $aleatoire. Randomizer::getFloat() n'existe qu'à
+     * partir de PHP 8.3 (le projet cible >=8.2) : on retrouve un tirage uniforme équivalent à partir
+     * de getInt(), disponible depuis PHP 8.2, en conservant le déterminisme du moteur seedé.
+     */
+    private static function tirageFloat(Randomizer $aleatoire, float $max): float
+    {
+        return $max * ($aleatoire->getInt(0, PHP_INT_MAX) / PHP_INT_MAX);
     }
 
     /**

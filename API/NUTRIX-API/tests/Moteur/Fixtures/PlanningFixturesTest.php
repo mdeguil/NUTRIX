@@ -204,14 +204,17 @@ class PlanningFixturesTest extends MoteurTestCase
     public function testLectureParOccupant(): void
     {
         $d = $this->donneesFixtures();
+
+        // Schema sans le lien (pre-migration Version20260923090000, gap #10) : filtre indisponible.
+        $d->planningOccupantLie = false;
         try {
             $this->planning->lire($d, null, null, 1);
             self::fail('501 attendu');
         } catch (MoteurException $e) {
-            self::assertSame(501, $e->getStatutHttp(), 'PLANNING_REPAS_OCCUPANT des fixtures sans Id_PLANNING_REPAS');
+            self::assertSame(501, $e->getStatutHttp(), 'PLANNING_REPAS_OCCUPANT sans Id_PLANNING_REPAS');
         }
 
-        // Une fois le lien ajouté en base, le filtre renvoie la part de l'occupant.
+        // Une fois le lien ajouté en base (schema actuel), le filtre renvoie la part de l'occupant.
         $d->planningOccupantLie = true;
         foreach ($d->planning as $i => $p) {
             $d->planning[$i]['occupants'] = 1 === $p['id'] ? [['equipage_id' => 3, 'portion_ratio' => 0.8]] : [];

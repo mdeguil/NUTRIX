@@ -25,7 +25,8 @@ trait FixturesNutrixTrait
     /** Données du vaisseau telles que chargées depuis une base remplie par AppFixtures. */
     protected function donneesFixtures(string $aujourdhui = MoteurTestCase::DATE_REFERENCE): DonneesVaisseau
     {
-        return NutrixDataProvider::construire($this->lignesFixtures(), new \DateTimeImmutable($aujourdhui));
+        // PLANNING_REPAS_OCCUPANT porte Id_PLANNING_REPAS depuis la migration Version20260923090000 (gap #10 corrige).
+        return NutrixDataProvider::construire($this->lignesFixtures(), new \DateTimeImmutable($aujourdhui), true);
     }
 
     /** @return array<string, list<array<string, mixed>>> */

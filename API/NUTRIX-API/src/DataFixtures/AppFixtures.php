@@ -130,10 +130,10 @@ class AppFixtures extends Fixture
         ]);
 
         $this->insertAll($connection, 'PLANNING_REPAS_OCCUPANT', [
-            ['Id_PLANNING_REPAS_OCCUPANT' => 1, 'portion_ratio' => 1.00, 'Id_Equipage' => 1],
-            ['Id_PLANNING_REPAS_OCCUPANT' => 2, 'portion_ratio' => 1.00, 'Id_Equipage' => 2],
-            ['Id_PLANNING_REPAS_OCCUPANT' => 3, 'portion_ratio' => 0.80, 'Id_Equipage' => 3],
-            ['Id_PLANNING_REPAS_OCCUPANT' => 4, 'portion_ratio' => 1.20, 'Id_Equipage' => 4],
+            ['Id_PLANNING_REPAS_OCCUPANT' => 1, 'portion_ratio' => 1.00, 'Id_Equipage' => 1, 'Id_PLANNING_REPAS' => 2],
+            ['Id_PLANNING_REPAS_OCCUPANT' => 2, 'portion_ratio' => 1.00, 'Id_Equipage' => 2, 'Id_PLANNING_REPAS' => 2],
+            ['Id_PLANNING_REPAS_OCCUPANT' => 3, 'portion_ratio' => 0.80, 'Id_Equipage' => 3, 'Id_PLANNING_REPAS' => 3],
+            ['Id_PLANNING_REPAS_OCCUPANT' => 4, 'portion_ratio' => 1.20, 'Id_Equipage' => 4, 'Id_PLANNING_REPAS' => 1],
         ]);
 
         $this->insertAll($connection, 'recette_ingredient', [
