@@ -1,0 +1,21 @@
+{
+	auto_https off
+}
+
+:{$PORT} {
+	root * /app/public
+	encode gzip
+
+	@static {
+		file
+		not path /index.php
+	}
+	handle @static {
+		file_server
+	}
+
+	handle {
+		try_files {path} /index.php
+		php_server
+	}
+}
