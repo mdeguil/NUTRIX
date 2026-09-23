@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: 'OCCUPANT_ALLERGIE')]
 #[ApiResource(
+    openapi: false,
     uriTemplate: '/occupant_allergies/{equipageId}/{allergeneId}',
     uriVariables: [
         'equipageId' => new Link(fromClass: Equipage::class, identifiers: ['id'], toProperty: 'equipage'),
@@ -29,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiResource(
+    openapi: false,
     uriTemplate: '/equipages/{equipageId}/allergies',
     uriVariables: [
         'equipageId' => new Link(fromClass: Equipage::class, identifiers: ['id'], toProperty: 'equipage'),

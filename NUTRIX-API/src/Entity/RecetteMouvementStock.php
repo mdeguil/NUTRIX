@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: 'Asso_11')]
 #[ApiResource(
+    openapi: false,
     uriTemplate: '/recette_mouvement_stocks/{recetteId}/{mouvementStockId}',
     uriVariables: [
         'recetteId' => new Link(fromClass: Recette::class, identifiers: ['id'], toProperty: 'recette'),
@@ -29,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiResource(
+    openapi: false,
     uriTemplate: '/recettes/{recetteId}/mouvements_stock',
     uriVariables: [
         'recetteId' => new Link(fromClass: Recette::class, identifiers: ['id'], toProperty: 'recette'),

@@ -15,6 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: 'PLANNING_REPAS_OCCUPANT')]
 #[ApiResource(
+    openapi: false,
     security: "is_granted('ROLE_USER')",
     operations: [
         new GetCollection(),

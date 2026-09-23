@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: API/NUTRIX-API
+        working-directory: NUTRIX-API
     env:
       APP_SECRET: ${{ secrets.APP_SECRET }}
       JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
@@ -46,8 +46,8 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: API/NUTRIX-API/vendor
-          key: composer-${{ hashFiles('API/NUTRIX-API/composer.lock') }}
+          path: NUTRIX-API/vendor
+          key: composer-${{ hashFiles('NUTRIX-API/composer.lock') }}
           restore-keys: composer-
 
       - name: Install dependencies
@@ -70,29 +70,3 @@ jobs:
 
       - name: Run tests
         run: php bin/phpunit
-
-  front:
-    name: Front React (lint, build)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Interface Client/NUTRIX-InterfaceClient
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: 'Interface Client/NUTRIX-InterfaceClient/package-lock.json'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build

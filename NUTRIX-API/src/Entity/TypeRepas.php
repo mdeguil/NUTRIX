@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'type_repas')]
 #[ApiResource(
+    openapi: false,
     security: "is_granted('ROLE_USER')",
     operations: [
         new GetCollection(),

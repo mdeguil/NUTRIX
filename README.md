@@ -50,7 +50,7 @@ Ce dépôt contient l'**API REST** du projet, en Symfony + API Platform. Elle fa
 | API REST | API Platform 5 (JSON-LD / Hydra, OpenAPI) |
 | ORM / migrations | Doctrine ORM 3, Doctrine Migrations |
 | Base de données | MySQL 8, hébergée, partagée par l'équipe et déjà remplie |
-| Référentiel nutritionnel | Valeurs de référence EFSA (version 4, 2017) dans [`efsa_drv_reference.json`](./efsa_drv_reference.json) |
+| Référentiel nutritionnel | Valeurs de référence EFSA (version 4, 2017) dans [`efsa_drv_reference.json`](./NUTRIX-API/config/nutrix/efsa_drv_reference.json) |
 | Authentification | JWT via `lexik/jwt-authentication-bundle` |
 | CORS | `nelmio/cors-bundle` |
 | Tests | PHPUnit 11, `doctrine-fixtures-bundle` |
@@ -96,7 +96,7 @@ Il y a deux types de routes :
 ### Arborescence
 
 ```text
-API/NUTRIX-API/
+NUTRIX-API/
 ├── config/
 │   ├── packages/          # config des bundles (security, api_platform, doctrine, jwt, cors…)
 │   └── jwt/               # clés JWT générées localement (non versionnées)
@@ -262,7 +262,7 @@ curl -X POST http://127.0.0.1:8000/api/register \
 
 ```bash
 git clone https://github.com/mdeguil/NUTRIX.git
-cd NUTRIX/API/NUTRIX-API
+cd NUTRIX/NUTRIX-API
 
 # 1. Dépendances
 composer install
@@ -300,19 +300,6 @@ symfony server:start -d --no-tls
 L'API répond alors sur http://127.0.0.1:8000/api, et sa documentation est sur http://127.0.0.1:8000/api/docs.
 
 Pour vérifier que tout fonctionne, connectez-vous avec un compte de démo, puis appelez `GET /api/stock/autonomie` ou `GET /api/equipages/1/besoins`.
-
-### Via les scripts
-
-Les scripts à la racine du dépôt font les étapes ci-dessus automatiquement : `.sh` pour Git Bash ou WSL, `.ps1` pour PowerShell.
-
-```bash
-./init.sh     # première installation : composer, .env.local + secrets, clés JWT, migrations
-./start.sh    # démarre le serveur Symfony (Ctrl+C pour tout arrêter)
-```
-
-À la première exécution, `init` crée `.env.local` avec des secrets générés. Il faut ensuite y renseigner le `DATABASE_URL` puis relancer le script. Un `.env.local` existant n'est jamais modifié.
-
-> Les scripts installent et lancent aussi le client React présent dans le dépôt. Il faut donc Node.js et npm pour les utiliser. Si vous ne travaillez que sur l'API, suivez l'installation manuelle.
 
 ### Modifier le schéma
 
