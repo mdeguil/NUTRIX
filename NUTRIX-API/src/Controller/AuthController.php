@@ -5,9 +5,11 @@ namespace App\Controller;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
@@ -26,7 +28,12 @@ class AuthController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
+        #[Autowire(service: 'limiter.register')] RateLimiterFactory $registerLimiter,
     ): JsonResponse {
+        if (false === $registerLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return new JsonResponse(['error' => 'trop d\'inscriptions depuis cette adresse, reessayez plus tard'], 429);
+        }
+
         $data = json_decode($request->getContent(), true) ?? [];
 
         $username = $data['username'] ?? null;

@@ -2,12 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Equipage;
+use App\Entity\User;
 use App\Service\Moteur\Exception\MoteurException;
 use App\Service\Moteur\MoteurCalcul;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -19,14 +23,36 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api', priority: 10)]
 class MoteurController extends AbstractController
 {
-    public function __construct(private readonly MoteurCalcul $moteur)
+    public function __construct(
+        private readonly MoteurCalcul $moteur,
+        private readonly EntityManagerInterface $em,
+    ) {
+    }
+
+    /**
+     * Un ROLE_ADMIN peut agir sur n'importe quel equipier. Sinon, l'utilisateur connecte doit
+     * etre le compte lie (Equipage.user) a l'equipage cible — sans quoi 403 (IDOR sinon : n'importe
+     * quel compte pourrait lire/ecrire les donnees nutritionnelles de n'importe qui).
+     */
+    private function assertProprietaireOuAdmin(int $equipageId): void
     {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+        /** @var User|null $user */
+        $user = $this->getUser();
+        $equipage = null !== $user ? $this->em->getRepository(Equipage::class)->findOneBy(['user' => $user]) : null;
+        if (null === $equipage || $equipage->getId() !== $equipageId) {
+            throw new AccessDeniedHttpException('Vous ne pouvez acceder qu\'aux donnees de votre propre equipage');
+        }
     }
 
     #[Route('/equipages/{id}/besoins', name: 'moteur_besoin_equipier', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_USER')]
     public function besoinEquipier(int $id, Request $request): JsonResponse
     {
+        $this->assertProprietaireOuAdmin($id);
+
         return $this->executer(fn () => $this->moteur->besoinEquipier(
             $id,
             $request->query->has('lpi_mg') ? (float) $request->query->get('lpi_mg') : null,
@@ -59,6 +85,7 @@ class MoteurController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function ecartNutritionnel(int $id, Request $request): JsonResponse
     {
+        $this->assertProprietaireOuAdmin($id);
         $periode = $request->query->has('periode_jours') ? (int) $request->query->get('periode_jours') : 7;
 
         return $this->executer(fn () => $this->moteur->ecartNutritionnel($id, $periode));
@@ -100,7 +127,10 @@ class MoteurController extends AbstractController
     #[IsGranted(new Expression('is_granted("ROLE_ADMIN") or is_granted("ROLE_OCCUPANT")'))]
     public function enregistrerRepas(Request $request): JsonResponse
     {
-        return $this->executer(fn () => $this->moteur->enregistrerRepas($this->corps($request)), 201);
+        $corps = $this->corps($request);
+        $this->assertProprietaireOuAdmin((int) ($corps['equipage_id'] ?? 0));
+
+        return $this->executer(fn () => $this->moteur->enregistrerRepas($corps), 201);
     }
 
     #[Route('/stock/autonomie', name: 'moteur_stock_autonomie', methods: ['GET'])]

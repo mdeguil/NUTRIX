@@ -19,9 +19,11 @@ class AppFixtures extends Fixture
         /** @var Connection $connection */
         $connection = $manager->getConnection();
 
-        $this->loadUsers($manager);
-
+        // Equipage.Id_User reference desormais un compte de demo (voir plus bas) : il faut vider
+        // les tables qui en dependent avant de pouvoir supprimer/recreer les users (FK).
         $this->clear($connection);
+
+        $userIds = $this->loadUsers($manager);
 
         $this->insertAll($connection, 'unite_stock', [
             ['Id_unite_stock' => 1, 'Libelle' => 'g'],
@@ -108,7 +110,7 @@ class AppFixtures extends Fixture
         ]);
 
         $this->insertAll($connection, 'Equipage', [
-            ['Id_Equipage' => 1, 'sexe' => 1, 'age' => 34, 'poids_kilo' => 78.50, 'taille_cm' => 180, 'bmi' => 24.20, 'pal' => 1.6, 'Id_Activity_label' => 3],
+            ['Id_Equipage' => 1, 'sexe' => 1, 'age' => 34, 'poids_kilo' => 78.50, 'taille_cm' => 180, 'bmi' => 24.20, 'pal' => 1.6, 'Id_Activity_label' => 3, 'Id_User' => $userIds['occupant']],
             ['Id_Equipage' => 2, 'sexe' => 0, 'age' => 29, 'poids_kilo' => 62.00, 'taille_cm' => 165, 'bmi' => 22.80, 'pal' => 1.4, 'Id_Activity_label' => 2],
             ['Id_Equipage' => 3, 'sexe' => 1, 'age' => 45, 'poids_kilo' => 82.00, 'taille_cm' => 176, 'bmi' => 26.50, 'pal' => 1.2, 'Id_Activity_label' => 1],
             ['Id_Equipage' => 4, 'sexe' => 0, 'age' => 27, 'poids_kilo' => 58.50, 'taille_cm' => 170, 'bmi' => 20.20, 'pal' => 1.9, 'Id_Activity_label' => 4],
@@ -159,7 +161,8 @@ class AppFixtures extends Fixture
         ]);
     }
 
-    private function loadUsers(ObjectManager $manager): void
+    /** @return array<string, int> id des comptes de demo crees, par username */
+    private function loadUsers(ObjectManager $manager): array
     {
         foreach ($manager->getRepository(User::class)->findAll() as $existingUser) {
             $manager->remove($existingUser);
@@ -172,15 +175,19 @@ class AppFixtures extends Fixture
             ['username' => 'ferme', 'role' => 'ROLE_FERME'],
         ];
 
+        $ids = [];
         foreach ($demoUsers as $demoUser) {
             $user = new User();
             $user->setUsername($demoUser['username']);
             $user->setRoles([$demoUser['role']]);
             $user->setPassword($this->passwordHasher->hashPassword($user, 'password123'));
             $manager->persist($user);
+            $ids[$demoUser['username']] = $user;
         }
 
         $manager->flush();
+
+        return array_map(static fn (User $u) => $u->getId(), $ids);
     }
 
     private function clear(Connection $connection): void

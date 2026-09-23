@@ -8,8 +8,21 @@ framework:
     #esi: true
     #fragments: true
 
+    rate_limiter:
+        register:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 hour'
+
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        # La limite reelle casserait les runs repetes de la suite dans la meme heure
+        # (cache du limiteur persistant sur disque entre deux lancements de phpunit).
+        rate_limiter:
+            register:
+                policy: 'sliding_window'
+                limit: 1000
+                interval: '1 hour'
