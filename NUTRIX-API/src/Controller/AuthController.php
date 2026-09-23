@@ -19,6 +19,8 @@ class AuthController extends AbstractController
      */
     private const ALLOWED_SELF_REGISTER_ROLES = ['ROLE_OCCUPANT', 'ROLE_FERME'];
 
+    private const PASSWORD_MIN_LENGTH = 8;
+
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(
         Request $request,
@@ -33,6 +35,12 @@ class AuthController extends AbstractController
 
         if (!$username || !$password) {
             return new JsonResponse(['error' => 'username et password sont requis'], 400);
+        }
+
+        if (\strlen($password) < self::PASSWORD_MIN_LENGTH) {
+            return new JsonResponse([
+                'error' => sprintf('password doit contenir au moins %d caracteres', self::PASSWORD_MIN_LENGTH),
+            ], 400);
         }
 
         if (!in_array($role, self::ALLOWED_SELF_REGISTER_ROLES, true)) {
