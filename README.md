@@ -40,7 +40,6 @@ Ce dépôt contient l'**API REST** du projet, en Symfony + API Platform. Elle fa
 | Stock | Sort les produits en FEFO (le premier à périmer sort en premier). Répartit le stock en réserves (courante, sécurité, urgence, stratégique). Exprime le stock en **jours d'autonomie** pour chaque nutriment. |
 | Prévisions | Projette sur 8 semaines les besoins, les récoltes, la consommation, le stock et les pertes. Détecte les périodes à risque. |
 | Agriculture | Traduit les déficits en besoins de production : quantités, surface, semences, eau, énergie. |
-| Simulation de crise | Recalcule autonomie et prévisions pour un scénario (perte de récolte, nouvel occupant, baisse de rendement) sans modifier les vraies données. |
 
 ## Stack technique
 
@@ -74,8 +73,8 @@ Client (front, curl, Postman…)
 │  │ API Platform          │   │ Contrôleurs métier     │  │
 │  │ CRUD généré depuis    │   │ besoins, planning,     │  │
 │  │ src/Entity/*          │   │ stock, prévisions,     │  │
-│  │ (#[ApiResource])      │   │ agriculture, crise,    │  │
-│  └──────────┬────────────┘   │ auth                   │  │
+│  │ (#[ApiResource])      │   │ agriculture, auth      │  │
+│  └──────────┬────────────┘   │                        │  │
 │             │                └──────────┬─────────────┘  │
 │             │                           ▼                │
 │             │                ┌────────────────────────┐  │
@@ -103,7 +102,7 @@ API/NUTRIX-API/
 │   └── jwt/               # clés JWT générées localement (non versionnées)
 ├── migrations/            # migrations Doctrine (schéma de la base)
 ├── src/
-│   ├── Controller/        # auth + routes métier (besoins, planning, stock, crise…)
+│   ├── Controller/        # auth + routes métier (besoins, planning, stock…)
 │   ├── Service/           # moteur de calcul
 │   ├── DataFixtures/      # données de référence + comptes de démo
 │   ├── Entity/            # entités Doctrine = ressources API
@@ -156,7 +155,7 @@ JOURNAL_REPAS + PLANNING_REPAS ──► historique (rotation) ─────�
         └──── écart réel / théorique ◄──── journal ◄──── PLANNING_REPAS généré ──► autonomie / prévisions 8 sem.
                                                                                           │
                                                           besoins agricoles ◄─────────────┤
-                                                          alertes / simulation de crise ◄─┘
+                                                          alertes (ruptures, semis) ◄─────┘
 ```
 
 1. **Besoins individuels.** Le moteur trouve la tranche d'âge de l'équipier dans le référentiel EFSA, puis :
@@ -176,8 +175,7 @@ JOURNAL_REPAS + PLANNING_REPAS ──► historique (rotation) ─────�
 8. **Autonomie.** Pour chaque nutriment, autonomie = stock disponible / besoin journalier, en jours. L'autonomie globale est la plus petite de ces valeurs (le nutriment limitant). Une variante inclut les récoltes prévues.
 9. **Prévision sur 8 semaines.** Le moteur part du stock actuel, ajoute les récoltes prévues (moins les pertes), retire la consommation planifiée et les pertes par péremption. Il en déduit le déficit et les semaines à risque.
 10. **Besoins agricoles.** Chaque déficit est réparti entre les aliments selon leur contribution, puis converti en quantité, surface, semences, eau et énergie à produire.
-11. **Simulation de crise.** Les étapes 8 à 10 sont recalculées sur des données modifiées en mémoire : récolte perdue, occupant ajouté ou rendement réduit.
-12. **Rétroaction.** Si un nutriment reste en déficit plusieurs jours de suite dans le journal, son poids augmente dans le score nutrition des prochains plannings.
+11. **Rétroaction.** Si un nutriment reste en déficit plusieurs jours de suite dans le journal, son poids augmente dans le score nutrition des prochains plannings.
 
 Les paramètres par défaut (poids des scores, fenêtre de 14 jours, K = 3, seuil de péremption à 7 jours, horizon de 7 à 14 jours) sont listés en §14 de `MOTEUR_CALCUL.md`.
 
@@ -189,7 +187,7 @@ La liste complète des routes et des schémas est dans la documentation interact
 
 | Méthode | Route | Rôle |
 |---|---|---|
-| GET | `/api/equipages/{id}/besoins` | Besoins d'un équipier. Paramètres optionnels : `lpi_mg`, `statut_menopause`. |
+| GET | `/api/equipages/{id}/besoins` | Besoins d'un équipier. |
 | GET | `/api/equipages/besoins?date=` | Besoins de l'équipe : total et détail par équipier |
 | GET | `/api/equipages/besoins/creneau?date=&type_repas=` | Besoins d'un créneau, par groupe d'allergies |
 | GET | `/api/equipages/{id}/ecart-nutritionnel?periode_jours=7` | Écart entre apports réels et besoins |
@@ -201,7 +199,6 @@ La liste complète des routes et des schémas est dans la documentation interact
 | GET | `/api/stock/autonomie` | Autonomie globale et par nutriment, en jours |
 | GET | `/api/stock/previsions?semaines=8` | Prévision semaine par semaine et périodes à risque |
 | GET | `/api/stock/besoins-agricoles?semaine=` | Production nécessaire pour chaque aliment |
-| POST | `/api/simulation-crise` | Recalcule autonomie et prévisions pour un scénario de crise |
 
 Toutes les routes qui renvoient un besoin ou un apport utilisent le même format de sortie, `BesoinNutritionnel`. Il contient l'énergie, les macronutriments, les fibres, l'eau, les minéraux, les vitamines, et un champ `meta` qui liste les hypothèses utilisées.
 
@@ -359,7 +356,7 @@ La CI a besoin de deux secrets GitHub, à définir dans **Settings → Secrets a
 
 | Fichier | Contenu |
 |---|---|
-| [`MOTEUR_CALCUL.md`](./MOTEUR_CALCUL.md) | Toutes les formules du moteur : besoins, stock, rotation, scoring, prévisions, agriculture, crise, rétroaction. Liste aussi les paramètres. |
+| [`MOTEUR_CALCUL.md`](./MOTEUR_CALCUL.md) | Toutes les formules du moteur : besoins, stock, rotation, scoring, prévisions, agriculture, rétroaction. Liste aussi les paramètres. |
 | [`API_BESOINS_PLANNING.md`](./API_BESOINS_PLANNING.md) | Spécification des routes métier : entrée, sortie, codes d'erreur, format `BesoinNutritionnel` |
 | [`efsa_drv_reference.json`](./efsa_drv_reference.json) | Valeurs de référence EFSA par tranche d'âge et par sexe : énergie par PAL, protéines, glucides et lipides, fibres, eau, minéraux, vitamines, ajustements grossesse et allaitement |
 

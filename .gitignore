@@ -11,6 +11,8 @@ dist/
 .idea/
 .vscode/
 
+Docs/**
+
 # Environment
 .env.local
 .env.*.local
