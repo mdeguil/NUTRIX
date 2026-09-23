@@ -18,7 +18,10 @@ use Symfony\Component\Serializer\Attribute\Ignore;
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
-#[ApiResource(operations: [new Get(), new GetCollection()])]
+#[ApiResource(
+    security: "is_granted('ROLE_ADMIN')",
+    operations: [new Get(), new GetCollection()],
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]

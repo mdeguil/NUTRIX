@@ -3,12 +3,28 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'LOT_STOCK')]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_USER')",
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_FERME')"),
+        new Put(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_FERME')"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_FERME')"),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_FERME')"),
+    ],
+)]
 class LotStock
 {
     #[ORM\Id]
