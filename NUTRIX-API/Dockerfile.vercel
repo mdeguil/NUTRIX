@@ -81,7 +81,11 @@ EXPOSE 80
 # variables d'environnement Vercel (JWT_PRIVATE_KEY_B64 / JWT_PUBLIC_KEY_B64) et decodees ici,
 # au demarrage du conteneur, avant de lancer FrankenPHP.
 #
-# Les migrations Doctrine sont ensuite appliquees (elles sont rejouables : colonnes en IF NOT EXISTS).
-# Un echec (base injoignable…) est journalise sans empecher l'API de demarrer, et le delai est borne
-# pour ne pas bloquer le demarrage a froid.
-CMD ["sh", "-c", "mkdir -p /app/config/jwt && if [ -n \"$JWT_PRIVATE_KEY_B64\" ]; then echo \"$JWT_PRIVATE_KEY_B64\" | base64 -d > /app/config/jwt/private.pem; fi && if [ -n \"$JWT_PUBLIC_KEY_B64\" ]; then echo \"$JWT_PUBLIC_KEY_B64\" | base64 -d > /app/config/jwt/public.pem; fi && (timeout 45 php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing || echo '[nutrix] migrations non appliquees au demarrage') && exec frankenphp run --config /etc/caddy/Caddyfile"]
+# Important : ne PAS lancer les migrations Doctrine ici. Ce runtime est serverless (un conteneur
+# peut redemarrer a froid a chaque requete) : executer "doctrine:migrations:migrate" a chaque boot
+# retarde l'ouverture du port HTTP, et si ca depasse le delai de demarrage tolere par Vercel, la
+# plateforme tue le conteneur avant meme que Symfony ne puisse repondre (FUNCTION_INVOCATION_FAILED,
+# "Application exited with code 1", sans aucune trace PHP - c'est Vercel qui tue le process, pas
+# une erreur applicative). Les migrations se lancent a la main, une fois par deploiement :
+# "vercel exec -- php bin/console doctrine:migrations:migrate" (ou en local contre la prod).
+CMD ["sh", "-c", "mkdir -p /app/config/jwt && if [ -n \"$JWT_PRIVATE_KEY_B64\" ]; then echo \"$JWT_PRIVATE_KEY_B64\" | base64 -d > /app/config/jwt/private.pem; fi && if [ -n \"$JWT_PUBLIC_KEY_B64\" ]; then echo \"$JWT_PUBLIC_KEY_B64\" | base64 -d > /app/config/jwt/public.pem; fi && exec frankenphp run --config /etc/caddy/Caddyfile"]
