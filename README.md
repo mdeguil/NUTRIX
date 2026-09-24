@@ -195,7 +195,6 @@ La liste complète des routes et des schémas est dans la documentation interact
 | POST | `/api/planning-repas/simuler` | Couverture nutritionnelle d'un ensemble de repas. N'écrit rien en base. |
 | POST | `/api/planning-repas/generer` | Génère le planning sur un horizon donné et l'enregistre |
 | GET | `/api/planning-repas?date_debut=&date_fin=&equipage_id=` | Lit le planning, pour toute l'équipe ou pour un occupant |
-| POST | `/api/journal-repas` | Enregistre un repas consommé et renvoie son apport |
 | GET | `/api/stock/autonomie` | Autonomie globale et par nutriment, en jours |
 | GET | `/api/stock/previsions?semaines=8` | Prévision semaine par semaine et périodes à risque |
 | GET | `/api/stock/besoins-agricoles?semaine=` | Production nécessaire pour chaque aliment |
@@ -216,6 +215,33 @@ curl -X POST http://127.0.0.1:8000/api/planning-repas/simuler \
       }'
 ```
 
+### Routes du front
+
+Ce sont les requêtes de l'interface React, décrites écran par écran dans `API_REQUETES_FRONT.md` (dépôt du front, dossier `doc/`). Les réponses sont en camelCase, avec les masses en grammes, l'énergie en kcal et les dates en ISO 8601. Elles sont calculées par `App\Service\Front\VuesFront`, qui s'appuie sur le moteur, et exposées par `App\Controller\FrontController`.
+
+| # | Méthode | Route | Accès | Page |
+|---|---|---|---|---|
+| R3 | GET | `/api/me` | connecté | session : rôle, `equipageId`, nom, prénom |
+| R4 | GET | `/api/status` | connecté | Sidebar / TopBar : base joignable, niveau, alertes |
+| R5 | GET | `/api/me/bilan-journalier?date=&equipageId=` | admin, occupant | Dashboard : consommé du jour et objectif EFSA |
+| R6 | GET | `/api/occupants?date=` | admin, occupant | Occupants, sélecteur du Journal |
+| R7 | GET | `/api/occupants/{id}` | admin, occupant (soi) | détail avec besoins |
+| R8 | GET | `/api/types-repas` | connecté | Journal |
+| R9 | GET | `/api/recettes/planifiees?dateDebut=&dateFin=&typeRepasId=` | connecté | Journal : menus planifiés |
+| R10 | GET | `/api/journal-repas?page=&itemsPerPage=&equipageId=&dateDebut=&dateFin=` | admin, occupant (soi) | Journal : historique paginé |
+| R11 | POST | `/api/journal-repas` | admin, occupant (soi) | Journal : enregistre le repas et sort le stock en FEFO |
+| R12 | GET | `/api/stock/categories` | connecté | Stock : inventaire, jauge = autonomie / 45 j |
+| R13 | GET | `/api/previsions/production?semaines=8` | admin, ferme | Prévisionnel |
+| R14 | GET | `/api/statistiques/aliments-consommes?periode=mois&limit=6` | admin, ferme | Prévisionnel |
+| R15 | GET | `/api/statistiques/menus-servis?periode=mois&limit=5` | admin, ferme | Prévisionnel |
+| R16 | GET | `/api/recettes?disponible=&sansAllergenes[]=&categorieId=&portions=` | connecté | Planificateur |
+| R17 | GET | `/api/allergenes` | connecté | Planificateur |
+| R18 | GET | `/api/agriculture/besoins-plantation` | admin, ferme | Agriculture |
+
+Les routes `/api` écrites à la main (routes métier et routes du front) renvoient toutes leurs erreurs au même format : `{ "error": "validation_failed", "message": "…", "violations": [{ "field": "…", "message": "…" }] }`. `error` est un code stable, `message` peut être affiché tel quel, et `violations` n'est présent qu'en 422.
+
+Le Prévisionnel, l'Agriculture, la jauge du Stock et les statistiques s'appuient tous sur `ConsommationCalculator` (consommation réelle issue du journal, stock de la réserve courante). Un même aliment affiche donc les mêmes chiffres sur toutes les pages. Les seuils de priorité sont dans `Parametres`.
+
 ### Routes CRUD (API Platform)
 
 Chaque entité du [modèle de données](#modèle-de-données) a ses routes `GET` (liste et détail), `POST`, `PUT`, `PATCH` et `DELETE` sous `/api/...`. Exception : `User` est en lecture seule.
@@ -227,8 +253,8 @@ L'API est *stateless*. Toutes les routes sous `/api` exigent un JWT valide, sauf
 | Route | Méthode | Accès | Rôle |
 |---|---|---|---|
 | `/api/login` | POST | public | Renvoie un token JWT |
-| `/api/register` | POST | public | Crée un compte `ROLE_OCCUPANT` ou `ROLE_FERME` |
-| `/api/me` | GET | authentifié | Renvoie l'utilisateur courant |
+| `/api/register` | POST | public | Crée un compte `ROLE_OCCUPANT` ou `ROLE_FERME`. Avec `nom`, `prenom` et `profil` (`sexe`, `age`, `poidsKg`, `tailleCm`, `pal`, `activiteId`), crée aussi le profil `Equipage` de l'occupant |
+| `/api/me` | GET | authentifié | Renvoie l'utilisateur courant et son `equipageId` (null s'il n'a pas de profil) |
 
 Il existe trois rôles : `ROLE_ADMIN`, `ROLE_OCCUPANT` et `ROLE_FERME`. `ROLE_ADMIN` ne peut pas être obtenu par inscription. Il s'attribue à la main, par exemple via les fixtures.
 

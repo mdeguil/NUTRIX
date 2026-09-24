@@ -51,7 +51,7 @@ class AuthControllerTest extends WebTestCase
             'role' => 'ROLE_ADMIN',
         ]));
 
-        $this->assertResponseStatusCodeSame(400);
+        $this->assertResponseStatusCodeSame(403);
     }
 
     public function testRegisterRejectsDuplicateUsername(): void

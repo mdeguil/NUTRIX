@@ -14,9 +14,21 @@ namespace App\Service\Moteur\Donnees;
 final class DonneesVaisseau
 {
     /**
-     * @var array<int, array{id: int, sexe: bool, age: int, poids_kg: float, taille_cm: int, pal: float, allergenes: list<int>}>
+     * nom, prenom, fonction et avatar_url viennent de colonnes ajoutées par la migration Version20260924120000 :
+     * null tant qu'elle n'est pas appliquée.
+     *
+     * @var array<int, array{id: int, sexe: bool, age: int, poids_kg: float, taille_cm: int, pal: float, allergenes: list<int>, user_id: int|null, activite_id: int|null, nom: string|null, prenom: string|null, fonction: string|null, avatar_url: string|null}>
      */
     public array $equipages = [];
+
+    /** @var array<int, string> libellé par Id_Activity_label */
+    public array $activites = [];
+
+    /** @var array<int, array{id: int, libelle: string}> */
+    public array $categoriesIngredient = [];
+
+    /** @var array<int, array{id: int, libelle: string}> */
+    public array $categoriesRecette = [];
 
     /** @var array<int, array{id: int, libelle: string, cle: string}> */
     public array $allergenes = [];
@@ -24,12 +36,12 @@ final class DonneesVaisseau
     /**
      * Valeurs pour 100 g (clés de Nutriments::CLES) + agronomie.
      *
-     * @var array<string, array{id: string, libelle: string, pour100g: array<string, float>, cycle_min: int, cycle_max: int, rendement_g_m2_j: float|null, categorie: string}>
+     * @var array<string, array{id: string, libelle: string, pour100g: array<string, float>, cycle_min: int, cycle_max: int, rendement_g_m2_j: float|null, categorie: string, categorie_id: int|null, unite: string|null}>
      */
     public array $aliments = [];
 
     /**
-     * @var array<int, array{id: int, libelle: string, pour100g: array<string, float>, poids_total_g: float, categorie_id: int|null, categorie: string, ingredients: array<string, float>}>
+     * @var array<int, array{id: int, libelle: string, pour100g: array<string, float>, poids_total_g: float, categorie_id: int|null, categorie: string, ingredients: array<string, float>, temps_preparation: string|null}>
      */
     public array $recettes = [];
 
@@ -52,7 +64,7 @@ final class DonneesVaisseau
     /** @var list<array{id: int, date: \DateTimeImmutable, portions: float, type_repas: string, recette_id: int, occupants: list<array{equipage_id: int, portion_ratio: float|null}>|null}> */
     public array $planning = [];
 
-    /** @var list<array{id: int, date_heure: \DateTimeImmutable, portion_g: float|null, recette_id: int, equipage_id: int, type_repas_id: int}> */
+    /** @var list<array{id: int, date_heure: \DateTimeImmutable, portion_g: float|null, recette_id: int, equipage_id: int, type_repas_id: int, notes: string|null}> */
     public array $journal = [];
 
     /**

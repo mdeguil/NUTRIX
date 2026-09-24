@@ -24,6 +24,16 @@ class MoteurException extends \RuntimeException
         return new self($message, 422);
     }
 
+    /**
+     * Entrée invalide avec le détail par champ, renvoyé tel quel au front (§0.4 de API_REQUETES_FRONT.md).
+     *
+     * @param list<array{field: string, message: string}> $violations
+     */
+    public static function violations(array $violations): self
+    {
+        return new self($violations[0]['message'] ?? 'Entrée invalide', 422, ['violations' => $violations]);
+    }
+
     /** @param array<string, mixed> $details */
     public static function conflit(string $message, array $details = []): self
     {

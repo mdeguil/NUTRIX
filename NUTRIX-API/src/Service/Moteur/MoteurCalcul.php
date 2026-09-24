@@ -20,7 +20,7 @@ use App\Service\Moteur\Exception\MoteurException;
  *   POST /api/planning-repas/simuler                  simulerPlanning()
  *   POST /api/planning-repas/generer                  genererPlanning()
  *   GET  /api/planning-repas                          lirePlanning()
- *   POST /api/journal-repas                           enregistrerRepas()
+ *   POST /api/journal-repas                           enregistrerRepas() (via FrontController)
  *   GET  /api/stock/autonomie                         autonomie()
  *   GET  /api/stock/previsions?semaines=8             previsions()
  *   GET  /api/stock/besoins-agricoles?semaine=        besoinsAgricoles()
@@ -113,6 +113,11 @@ class MoteurCalcul
         if ($entree['sortie_stock'] ?? false) {
             $recette = $d->recettes[$repas['recette_id']];
             foreach ($this->recettes->composition($d, $recette)['aliments'] as $code => $g100) {
+                // Un ingrédient à 0 g dans la recette ne sort rien (planifierSortie refuse une quantité nulle,
+                // et le repas est déjà enregistré à ce stade).
+                if ($g100 <= 0) {
+                    continue;
+                }
                 $plan = $this->stock->planifierSortie($d, $code, $repas['portion_g'] * $g100 / 100, $repas['date_heure']);
                 $this->donnees->enregistrerSorties($plan['sorties'], $recette['id'], $repas['date_heure']);
                 $sorties[] = ['aliment_id' => $code] + $plan;

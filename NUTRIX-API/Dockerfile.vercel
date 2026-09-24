@@ -58,6 +58,18 @@ ENV APP_ENV=prod
 ENV APP_DEBUG=0
 ENV SERVER_NAME=:80
 
+# "dump-env --empty" ne reprend aucune valeur de .env : sans ces valeurs par defaut, les variables
+# non secretes que .env definissait n'existent pas en prod, et /api/login plante en 500
+# ("Environment variable not found: JWT_SECRET_KEY") des qu'il construit le gestionnaire JWT.
+# Les variables d'environnement Vercel restent prioritaires. Les secrets (APP_SECRET, JWT_PASSPHRASE,
+# DATABASE_URL, JWT_*_KEY_B64) n'ont volontairement pas de valeur par defaut.
+ENV JWT_SECRET_KEY=/app/config/jwt/private.pem
+ENV JWT_PUBLIC_KEY=/app/config/jwt/public.pem
+ENV MESSENGER_TRANSPORT_DSN="doctrine://default?auto_setup=0"
+ENV MAILER_DSN=null://null
+ENV DEFAULT_URI=http://localhost
+ENV CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+
 COPY --from=dependencies /app /app
 COPY Caddyfile /etc/caddy/Caddyfile
 
@@ -68,4 +80,8 @@ EXPOSE 80
 # Les cles JWT ne sont jamais commitees (.gitignore) : elles sont fournies en base64 par les
 # variables d'environnement Vercel (JWT_PRIVATE_KEY_B64 / JWT_PUBLIC_KEY_B64) et decodees ici,
 # au demarrage du conteneur, avant de lancer FrankenPHP.
-CMD ["sh", "-c", "mkdir -p /app/config/jwt && if [ -n \"$JWT_PRIVATE_KEY_B64\" ]; then echo \"$JWT_PRIVATE_KEY_B64\" | base64 -d > /app/config/jwt/private.pem; fi && if [ -n \"$JWT_PUBLIC_KEY_B64\" ]; then echo \"$JWT_PUBLIC_KEY_B64\" | base64 -d > /app/config/jwt/public.pem; fi && exec frankenphp run --config /etc/caddy/Caddyfile"]
+#
+# Les migrations Doctrine sont ensuite appliquees (elles sont rejouables : colonnes en IF NOT EXISTS).
+# Un echec (base injoignable…) est journalise sans empecher l'API de demarrer, et le delai est borne
+# pour ne pas bloquer le demarrage a froid.
+CMD ["sh", "-c", "mkdir -p /app/config/jwt && if [ -n \"$JWT_PRIVATE_KEY_B64\" ]; then echo \"$JWT_PRIVATE_KEY_B64\" | base64 -d > /app/config/jwt/private.pem; fi && if [ -n \"$JWT_PUBLIC_KEY_B64\" ]; then echo \"$JWT_PUBLIC_KEY_B64\" | base64 -d > /app/config/jwt/public.pem; fi && (timeout 45 php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing || echo '[nutrix] migrations non appliquees au demarrage') && exec frankenphp run --config /etc/caddy/Caddyfile"]

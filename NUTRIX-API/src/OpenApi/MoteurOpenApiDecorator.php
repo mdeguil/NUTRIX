@@ -50,6 +50,8 @@ final class MoteurOpenApiDecorator implements OpenApiFactoryInterface
 
         $errorResponses = static function (array $codes): array {
             $libelles = [
+                400 => 'Corps JSON invalide',
+                403 => 'Role insuffisant, ou donnees d\'un autre occupant',
                 404 => 'Ressource introuvable',
                 409 => 'Conflit (ex. rupture de menu)',
                 422 => 'Entree invalide',
@@ -61,7 +63,11 @@ final class MoteurOpenApiDecorator implements OpenApiFactoryInterface
                     description: $libelles[$code],
                     content: new \ArrayObject(['application/json' => new MediaType(schema: new \ArrayObject([
                         'type' => 'object',
-                        'properties' => ['error' => ['type' => 'string']],
+                        'properties' => [
+                            'error' => ['type' => 'string', 'description' => 'Code machine stable (validation_failed, not_found…)'],
+                            'message' => ['type' => 'string', 'description' => 'Texte affichable tel quel'],
+                            'violations' => ['type' => 'array', 'description' => 'En 422 seulement', 'items' => ['type' => 'object', 'properties' => ['field' => ['type' => 'string'], 'message' => ['type' => 'string']]]],
+                        ],
                     ]))]),
                 );
             }
@@ -212,22 +218,23 @@ final class MoteurOpenApiDecorator implements OpenApiFactoryInterface
 
         $addPost(
             '/api/journal-repas',
-            'moteur_journal_enregistrer',
-            'Enregistre un repas reellement consomme et renvoie son apport (ROLE_ADMIN ou ROLE_OCCUPANT)',
+            'front_journal_enregistrer',
+            'R11 — Enregistre un repas consomme et sort ses ingredients du stock en FEFO (ROLE_ADMIN, ou ROLE_OCCUPANT pour lui-meme)',
             new \ArrayObject([
                 'type' => 'object',
-                'required' => ['equipage_id', 'recette_id', 'type_repas_id'],
+                'required' => ['equipageId', 'recetteId', 'typeRepasId', 'dateHeure'],
                 'properties' => [
-                    'equipage_id' => ['type' => 'integer'],
-                    'recette_id' => ['type' => 'integer'],
-                    'type_repas_id' => ['type' => 'integer'],
-                    'date_heure' => ['type' => 'string', 'format' => 'date-time', 'description' => 'Defaut maintenant'],
-                    'portion_g' => ['type' => 'number', 'description' => 'Defaut : part standard calculee sur le besoin de l\'equipier'],
-                    'sortie_stock' => ['type' => 'boolean', 'description' => 'Si true, sort aussi les ingredients du stock en FEFO'],
+                    'equipageId' => ['type' => 'integer'],
+                    'recetteId' => ['type' => 'integer'],
+                    'typeRepasId' => ['type' => 'integer'],
+                    'dateHeure' => ['type' => 'string', 'format' => 'date-time', 'description' => 'ISO 8601 avec fuseau, pas dans le futur'],
+                    'portionG' => ['type' => 'number', 'description' => 'Defaut : part standard calculee sur le besoin de l\'occupant'],
+                    'notes' => ['type' => 'string', 'maxLength' => 255],
                 ],
             ]),
-            $jsonResponse('Repas enregistre', $objectSchema('id, equipage_id, recette_id, type_repas_id, date_heure, portion_g, apport, sorties_stock?')),
+            $jsonResponse('Repas enregistre (meme objet qu\'un element de GET /api/journal-repas, + alertesStock si le stock courant ne suffisait pas)', $objectSchema('id, dateHeure, equipage{id,nom,prenom}, recette{id,libelle}, typeRepas{id,libelle}, portionG, apport{kcal,proteinesG,glucidesG,lipidesG,fibresG}, notes, alertesStock?')),
             201,
+            [422, 403, 404],
         );
 
         $addGet(
@@ -259,6 +266,67 @@ final class MoteurOpenApiDecorator implements OpenApiFactoryInterface
             $jsonResponse('Besoins agricoles', $objectSchema('besoins[], totaux, hors_culture[]')),
             [422],
         );
+
+        // ---- Requetes du front (Docs/API_REQUETES_FRONT.md), App\Controller\FrontController ----
+        $q = static fn (string $nom, string $type, string $description, bool $requis = false, ?string $format = null) => new Parameter(
+            name: $nom, in: 'query', description: $description, required: $requis,
+            schema: array_filter(['type' => $type, 'format' => $format]),
+        );
+        $date = static fn (string $nom, string $description) => $q($nom, 'string', $description, false, 'date');
+        $periode = [
+            $q('periode', 'string', 'semaine | mois | personnalisee (defaut mois)'),
+            $date('dateDebut', 'Requis si periode=personnalisee'),
+            $date('dateFin', 'Requis si periode=personnalisee'),
+        ];
+
+        $addGet('/api/status', 'front_status', 'R4 — Etat de l\'API et de la base, niveau (nominal/attention/critique) et alertes en cours', [],
+            $jsonResponse('Statut', $objectSchema('api, database (ok|down), niveau, alertes[{niveau, message}], horodatage')), []);
+        $addGet('/api/me/bilan-journalier', 'front_bilan_journalier', 'R5 — Consomme du jour et objectif EFSA de l\'occupant connecte (ADMIN : equipageId ou total equipage)',
+            [$date('date', 'Defaut aujourd\'hui'), $q('equipageId', 'integer', 'ADMIN seulement ; absent = total equipage')],
+            $jsonResponse('Bilan', $objectSchema('date, equipageId, calories|proteines|lipides|glucides|fibres|eau : {consomme, objectif, objectifMin?, objectifMax?, unite}')), [403, 404, 422]);
+        $addGet('/api/occupants', 'front_occupants', 'R6 — Liste de l\'equipage (ROLE_ADMIN, ROLE_OCCUPANT)', [$date('date', 'Jour de apportsActuelsKcal, defaut aujourd\'hui')],
+            $jsonResponse('Occupants', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'id, userId, nom, prenom, age, sexe, poids, tailleCm, pal, niveauActivite, apportsKcal, apportsActuelsKcal, fonction, avatarUrl, allergenes[{id, nom}]']])), [403, 422]);
+        $addGet('/api/occupants/{id}', 'front_occupant', 'R7 — Detail d\'un occupant avec ses besoins (un occupant ne lit que le sien)',
+            [new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']), $date('date', 'Defaut aujourd\'hui')],
+            $jsonResponse('Occupant', $objectSchema('champs de GET /api/occupants + besoins (BesoinNutritionnel)')), [403, 404]);
+        $addGet('/api/types-repas', 'front_types_repas', 'R8 — Types de repas', [],
+            $jsonResponse('Types de repas', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'id, libelle']])), []);
+        $addGet('/api/recettes/planifiees', 'front_recettes_planifiees', 'R9 — Recettes du planning sur une periode (menu servi du Journal)',
+            [$date('dateDebut', 'Defaut hier'), $date('dateFin', 'Defaut demain'), $q('typeRepasId', 'integer', 'Filtre sur un creneau')],
+            $jsonResponse('Recettes planifiees', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'recetteId, libelle, date, typeRepas{id, libelle}, poidsPortionG, kcalPortion']])), [422]);
+        $paths->addPath('/api/journal-repas', $paths->getPath('/api/journal-repas')->withGet(new Operation(
+            operationId: 'front_journal_lire',
+            tags: ['journal-repas'],
+            summary: 'R10 — Historique du journal, pagine (un occupant ne voit que ses repas)',
+            parameters: [
+                $q('page', 'integer', 'Defaut 1'), $q('itemsPerPage', 'integer', 'Defaut 20, max 100'), $q('equipageId', 'integer', 'Filtre sur un occupant'),
+                $date('dateDebut', 'Debut de periode'), $date('dateFin', 'Fin de periode'), $q('order[dateHeure]', 'string', 'desc (defaut) ou asc'),
+            ],
+            responses: ['200' => $jsonResponse('Page du journal', $objectSchema('items[] (meme format que la reponse de POST), totalItems, page, itemsPerPage'))] + $errorResponses([403, 422]),
+            security: self::SECURITY,
+        )));
+        $addGet('/api/stock/categories', 'front_stock_categories', 'R12 — Inventaire par categorie d\'ingredient, jauge = autonomie / 45 jours', [],
+            $jsonResponse('Categories', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'id, nom, code, niveauPercent, joursAutonomie, items[{alimentId, nom, quantite, quantiteConsommable, unite, quantiteAffichee, prochainePeremption, joursAutonomie, sousReserveMinimale}]']])), []);
+        $addGet('/api/previsions/production', 'front_previsions_production', 'R13 — Production a prevoir par aliment sur l\'horizon (ROLE_ADMIN, ROLE_FERME)',
+            [$q('semaines', 'integer', 'Defaut 8'), $q('historiqueJours', 'integer', 'Fenetre du journal, defaut 28')],
+            $jsonResponse('Previsions', $objectSchema('horizonSemaines, historiqueJours, genereLe, aliments[{alimentId, aliment, consommationHebdoG, stockActuelG, recoltesPrevuesG, besoinTotalG, aProduireG, couverturePercent, priorite}]')), [403, 422]);
+        $addGet('/api/statistiques/aliments-consommes', 'front_stats_aliments', 'R14 — Aliments les plus consommes (ROLE_ADMIN, ROLE_FERME)',
+            [...$periode, $q('limit', 'integer', 'Defaut 6')],
+            $jsonResponse('Classement', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'alimentId, nom, quantiteG']])), [403, 422]);
+        $addGet('/api/statistiques/menus-servis', 'front_stats_menus', 'R15 — Menus les plus servis (ROLE_ADMIN, ROLE_FERME)',
+            [...$periode, $q('limit', 'integer', 'Defaut 5')],
+            $jsonResponse('Classement', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'recetteId, nom, fois']])), [403, 422]);
+        $addGet('/api/recettes', 'front_recettes', 'R16 — Catalogue des recettes : valeurs par portion, composition, allergenes, disponibilite',
+            [
+                $q('disponible', 'boolean', 'Filtre sur la disponibilite'), $q('sansAllergenes', 'string', 'Ids d\'allergenes a exclure : sansAllergenes[]=1&sansAllergenes[]=2 ou 1,2'),
+                $q('categorieId', 'integer', 'Categorie de recette'), $q('portions', 'number', 'Portions pour le calcul de disponible, defaut 1'),
+            ],
+            $jsonResponse('Recettes', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'id, label, categorie{id, libelle}, poidsPortionG, calories, proteines, glucides, lipides, fibres, tempsPreparation, aliments[{id, nom, quantiteG}], allergenes[{id, nom}], disponible, portionsRealisables']])), [422]);
+        $addGet('/api/allergenes', 'front_allergenes', 'R17 — Allergenes', [],
+            $jsonResponse('Allergenes', new \ArrayObject(['type' => 'array', 'items' => ['type' => 'object', 'description' => 'id, nom']])), []);
+        $addGet('/api/agriculture/besoins-plantation', 'front_besoins_plantation', 'R18 — Autonomie par aliment et priorites de plantation (ROLE_ADMIN, ROLE_FERME)',
+            [$q('historiqueJours', 'integer', 'Defaut 30'), $q('autonomieCibleJours', 'integer', 'Defaut 45')],
+            $jsonResponse('Besoins de plantation', $objectSchema('autonomieCibleJours, historiqueJours, aliments[{alimentId, aliment, consommationMoisG, stockActuelG, joursAutonomie, gaugePercent, priorite, recoltesEnCours[], cycleJoursMin, cycleJoursMax}]')), [403, 422]);
 
         return $openApi->withPaths($paths);
     }

@@ -110,15 +110,15 @@ class AppFixtures extends Fixture
         ]);
 
         $this->insertAll($connection, 'Equipage', [
-            ['Id_Equipage' => 1, 'sexe' => 1, 'age' => 34, 'poids_kilo' => 78.50, 'taille_cm' => 180, 'bmi' => 24.20, 'pal' => 1.6, 'Id_Activity_label' => 3, 'Id_User' => $userIds['occupant']],
-            ['Id_Equipage' => 2, 'sexe' => 0, 'age' => 29, 'poids_kilo' => 62.00, 'taille_cm' => 165, 'bmi' => 22.80, 'pal' => 1.4, 'Id_Activity_label' => 2],
-            ['Id_Equipage' => 3, 'sexe' => 1, 'age' => 45, 'poids_kilo' => 82.00, 'taille_cm' => 176, 'bmi' => 26.50, 'pal' => 1.2, 'Id_Activity_label' => 1],
-            ['Id_Equipage' => 4, 'sexe' => 0, 'age' => 27, 'poids_kilo' => 58.50, 'taille_cm' => 170, 'bmi' => 20.20, 'pal' => 1.9, 'Id_Activity_label' => 4],
+            ['Id_Equipage' => 1, 'nom' => 'Martin', 'prenom' => 'Lucas', 'fonction' => 'Commandant de bord', 'sexe' => 1, 'age' => 34, 'poids_kilo' => 78.50, 'taille_cm' => 180, 'bmi' => 24.20, 'pal' => 1.6, 'Id_Activity_label' => 3, 'Id_User' => $userIds['occupant']],
+            ['Id_Equipage' => 2, 'nom' => 'Dubois', 'prenom' => 'Claire', 'fonction' => 'Ingenieure systemes', 'sexe' => 0, 'age' => 29, 'poids_kilo' => 62.00, 'taille_cm' => 165, 'bmi' => 22.80, 'pal' => 1.4, 'Id_Activity_label' => 2],
+            ['Id_Equipage' => 3, 'nom' => 'Moreau', 'prenom' => 'Paul', 'fonction' => 'Medecin de bord', 'sexe' => 1, 'age' => 45, 'poids_kilo' => 82.00, 'taille_cm' => 176, 'bmi' => 26.50, 'pal' => 1.2, 'Id_Activity_label' => 1],
+            ['Id_Equipage' => 4, 'nom' => 'Laurent', 'prenom' => 'Ines', 'fonction' => 'Responsable agronomie', 'sexe' => 0, 'age' => 27, 'poids_kilo' => 58.50, 'taille_cm' => 170, 'bmi' => 20.20, 'pal' => 1.9, 'Id_Activity_label' => 4],
         ]);
 
         $this->insertAll($connection, 'JOURNAL_REPAS', [
             ['Id_JOURNAL_REPAS' => 1, 'date_heure' => '2026-09-20 07:30:00', 'portion_g' => 250.00, 'Id_Recette' => 5, 'Id_Equipage' => 1, 'Id_type_repas' => 1],
-            ['Id_JOURNAL_REPAS' => 2, 'date_heure' => '2026-09-20 12:15:00', 'portion_g' => 400.00, 'Id_Recette' => 1, 'Id_Equipage' => 1, 'Id_type_repas' => 2],
+            ['Id_JOURNAL_REPAS' => 2, 'date_heure' => '2026-09-20 12:15:00', 'portion_g' => 400.00, 'Id_Recette' => 1, 'Id_Equipage' => 1, 'Id_type_repas' => 2, 'notes' => 'Portion complete'],
             ['Id_JOURNAL_REPAS' => 3, 'date_heure' => '2026-09-20 19:00:00', 'portion_g' => 300.00, 'Id_Recette' => 3, 'Id_Equipage' => 2, 'Id_type_repas' => 3],
             ['Id_JOURNAL_REPAS' => 4, 'date_heure' => '2026-09-21 07:45:00', 'portion_g' => 200.00, 'Id_Recette' => 3, 'Id_Equipage' => 3, 'Id_type_repas' => 1],
             ['Id_JOURNAL_REPAS' => 5, 'date_heure' => '2026-09-21 12:30:00', 'portion_g' => 250.00, 'Id_Recette' => 4, 'Id_Equipage' => 4, 'Id_type_repas' => 2],

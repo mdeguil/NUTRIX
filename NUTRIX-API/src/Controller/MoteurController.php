@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Equipage;
 use App\Entity\User;
+use App\Http\ErreurApi;
 use App\Service\Moteur\Exception\MoteurException;
 use App\Service\Moteur\MoteurCalcul;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -123,16 +123,6 @@ class MoteurController extends AbstractController
         ));
     }
 
-    #[Route('/journal-repas', name: 'moteur_journal_enregistrer', methods: ['POST'])]
-    #[IsGranted(new Expression('is_granted("ROLE_ADMIN") or is_granted("ROLE_OCCUPANT")'))]
-    public function enregistrerRepas(Request $request): JsonResponse
-    {
-        $corps = $this->corps($request);
-        $this->assertProprietaireOuAdmin((int) ($corps['equipage_id'] ?? 0));
-
-        return $this->executer(fn () => $this->moteur->enregistrerRepas($corps), 201);
-    }
-
     #[Route('/stock/autonomie', name: 'moteur_stock_autonomie', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function autonomie(): JsonResponse
@@ -173,7 +163,7 @@ class MoteurController extends AbstractController
         try {
             return new JsonResponse($fn(), $statutSucces);
         } catch (MoteurException $e) {
-            return new JsonResponse(['error' => $e->getMessage()] + ($e->getDetails() ? ['details' => $e->getDetails()] : []), $e->getStatutHttp());
+            return ErreurApi::depuisMoteur($e);
         }
     }
 }

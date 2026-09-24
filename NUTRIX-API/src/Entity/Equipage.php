@@ -34,6 +34,23 @@ class Equipage
     #[ORM\Column(name: 'Id_Equipage')]
     private ?int $id = null;
 
+    #[ORM\Column(name: 'nom', length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $nom = null;
+
+    #[ORM\Column(name: 'prenom', length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $prenom = null;
+
+    /** Fonction a bord (« Commandante de bord »…) : rien a voir avec les roles de securite de User. */
+    #[ORM\Column(name: 'fonction', length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $fonction = null;
+
+    #[ORM\Column(name: 'avatar_url', length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
+    private ?string $avatarUrl = null;
+
     /**
      * Convention : true = Homme (M), false = Femme (F) — voir MOTEUR_CALCUL.md §1 (ecart #6).
      */
@@ -86,6 +103,54 @@ class Equipage
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(?string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(?string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
+    }
+
+    public function getFonction(): ?string
+    {
+        return $this->fonction;
+    }
+
+    public function setFonction(?string $fonction): static
+    {
+        $this->fonction = $fonction;
+
+        return $this;
+    }
+
+    public function getAvatarUrl(): ?string
+    {
+        return $this->avatarUrl;
+    }
+
+    public function setAvatarUrl(?string $avatarUrl): static
+    {
+        $this->avatarUrl = $avatarUrl;
+
+        return $this;
     }
 
     public function isSexe(): ?bool

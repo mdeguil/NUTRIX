@@ -20,7 +20,7 @@ class NutrixDataProvider
     private const TABLES = [
         'ALLERGENE', 'OCCUPANT_ALLERGIE', 'Equipage', 'Categorie_ingredient', 'Aliment', 'categorie_recette', 'Recette',
         'recette_ingredient', 'type_repas', 'LOT_STOCK', 'MOUVEMENT_STOCK', 'Asso_11', 'RECOLTE', 'PLANNING_REPAS',
-        'PLANNING_REPAS_OCCUPANT', 'JOURNAL_REPAS',
+        'PLANNING_REPAS_OCCUPANT', 'JOURNAL_REPAS', 'Activity_label', 'unite_stock',
     ];
 
     /** Tables recommandées par API_BESOINS_PLANNING.md §1, absentes du dump : utilisées si elles existent. */
@@ -92,10 +92,24 @@ class NutrixDataProvider
                 'taille_cm' => (int) $r['taille_cm'],
                 'pal' => (float) $r['pal'],
                 'allergenes' => $allergiesParEquipage[$id] ?? [],
+                'user_id' => null !== ($r['id_user'] ?? null) ? (int) $r['id_user'] : null,
+                'activite_id' => null !== ($r['id_activity_label'] ?? null) ? (int) $r['id_activity_label'] : null,
+                // Colonnes de la migration Version20260924120000 : absentes (null) sur une base non migrée.
+                'nom' => $r['nom'] ?? null,
+                'prenom' => $r['prenom'] ?? null,
+                'fonction' => $r['fonction'] ?? null,
+                'avatar_url' => $r['avatar_url'] ?? null,
             ];
+        }
+        foreach ($t('Activity_label') as $r) {
+            $d->activites[(int) $r['id_activity_label']] = (string) $r['libelle'];
         }
 
         $categoriesIngredient = array_column($t('Categorie_ingredient'), 'libelle', 'id_categorie_ingredient');
+        foreach ($categoriesIngredient as $id => $libelle) {
+            $d->categoriesIngredient[(int) $id] = ['id' => (int) $id, 'libelle' => (string) $libelle];
+        }
+        $unites = array_column($t('unite_stock'), 'libelle', 'id_unite_stock');
         foreach ($t('Aliment') as $r) {
             $d->aliments[$r['id_aliment']] = [
                 'id' => $r['id_aliment'],
@@ -111,6 +125,8 @@ class NutrixDataProvider
                 'cycle_max' => (int) $r['cycle_jours_max'],
                 'rendement_g_m2_j' => null !== $r['rendement_g_m2_j'] ? (float) $r['rendement_g_m2_j'] : null,
                 'categorie' => Texte::cle($categoriesIngredient[$r['id_categorie_ingredient']] ?? null),
+                'categorie_id' => null !== ($r['id_categorie_ingredient'] ?? null) ? (int) $r['id_categorie_ingredient'] : null,
+                'unite' => null !== ($r['id_unite_stock'] ?? null) ? ($unites[$r['id_unite_stock']] ?? null) : null,
             ];
         }
 
@@ -120,6 +136,9 @@ class NutrixDataProvider
             $ingredients[(int) $r['id_recette']][$r['id_aliment']] = (float) ($r['quantite_g'] ?? 0);
         }
         $categoriesRecette = array_column($t('categorie_recette'), 'libelle', 'id_categorie_recette');
+        foreach ($categoriesRecette as $id => $libelle) {
+            $d->categoriesRecette[(int) $id] = ['id' => (int) $id, 'libelle' => (string) $libelle];
+        }
         foreach ($t('Recette') as $r) {
             $id = (int) $r['id_recette'];
             $categorie = null !== $r['id_categorie_recette'] ? (int) $r['id_categorie_recette'] : null;
@@ -137,6 +156,7 @@ class NutrixDataProvider
                 'categorie_id' => $categorie,
                 'categorie' => Texte::cle($categoriesRecette[$categorie] ?? null),
                 'ingredients' => $ingredients[$id] ?? [],
+                'temps_preparation' => $r['temps_preparation'] ?? null,
             ];
         }
 
@@ -223,6 +243,7 @@ class NutrixDataProvider
                 'recette_id' => (int) $r['id_recette'],
                 'equipage_id' => (int) $r['id_equipage'],
                 'type_repas_id' => (int) $r['id_type_repas'],
+                'notes' => $r['notes'] ?? null,
             ];
         }
         usort($d->journal, static fn ($a, $b) => $a['date_heure'] <=> $b['date_heure']);
@@ -297,6 +318,29 @@ class NutrixDataProvider
         ]);
 
         return (int) $this->connexion->lastInsertId();
+    }
+
+    /** Notes d'un repas journalisé ; ignorées tant que la colonne JOURNAL_REPAS.notes n'existe pas. */
+    public function enregistrerNotesJournal(int $journalId, ?string $notes): bool
+    {
+        if (null === $notes || !$this->colonneExiste('JOURNAL_REPAS', 'notes')) {
+            return false;
+        }
+        $this->connexion->update('JOURNAL_REPAS', ['notes' => $notes], ['Id_JOURNAL_REPAS' => $journalId]);
+
+        return true;
+    }
+
+    /** Vrai si la base répond. */
+    public function baseJoignable(): bool
+    {
+        try {
+            $this->connexion->executeQuery('SELECT 1');
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**

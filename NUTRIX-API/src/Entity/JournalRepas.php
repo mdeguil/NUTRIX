@@ -40,6 +40,10 @@ class JournalRepas
     #[Assert\PositiveOrZero]
     private ?float $portionG = null;
 
+    #[ORM\Column(name: 'notes', length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
+    private ?string $notes = null;
+
     #[ORM\ManyToOne(targetEntity: Recette::class)]
     #[ORM\JoinColumn(name: 'Id_Recette', referencedColumnName: 'Id_Recette', nullable: false)]
     #[Assert\NotNull]
@@ -116,6 +120,18 @@ class JournalRepas
     public function setTypeRepas(?TypeRepas $typeRepas): static
     {
         $this->typeRepas = $typeRepas;
+
+        return $this;
+    }
+
+    public function getNotes(): ?string
+    {
+        return $this->notes;
+    }
+
+    public function setNotes(?string $notes): static
+    {
+        $this->notes = $notes;
 
         return $this;
     }

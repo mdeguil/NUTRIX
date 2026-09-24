@@ -78,8 +78,14 @@ class MoteurCalculIntegrationTest extends KernelTestCase
     public function testLectureEnBaseIdentiqueAuxFixtures(): void
     {
         $enBase = $this->donnees->charger();
+        $attendu = $this->donneesFixtures();
+        // Seule différence attendue : l'id du compte lié, attribué par la base (la connexion simulée n'en génère pas).
+        self::assertNotNull($enBase->equipages[1]['user_id'], 'Equipage 1 lié au compte « occupant »');
+        foreach ($enBase->equipages as $id => $eq) {
+            $attendu->equipages[$id]['user_id'] = $eq['user_id'];
+        }
 
-        self::assertEquals($this->donneesFixtures(), $enBase);
+        self::assertEquals($attendu, $enBase);
         self::assertSame(MoteurTestCase::DATE_REFERENCE, $enBase->aujourdhui->format('Y-m-d'), 'date fournie par l\'horloge');
         self::assertTrue($enBase->planningOccupantLie, 'PLANNING_REPAS_OCCUPANT.Id_PLANNING_REPAS ajoute (gap #10 corrige)');
         self::assertNull($enBase->alimentAllergenes, 'table ALIMENT_ALLERGENE absente du schéma');

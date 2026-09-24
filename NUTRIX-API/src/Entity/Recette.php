@@ -38,7 +38,7 @@ class Recette
     #[ORM\Column(name: 'Id_Recette')]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'libelle', length: 50, unique: true)]
+    #[ORM\Column(name: 'libelle', length: 150, unique: true)]
     #[Assert\NotBlank]
     private ?string $libelle = null;
 

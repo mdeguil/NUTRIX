@@ -75,6 +75,20 @@ final class Parametres
     public const CONSO_EAU_L_M2_J = 3.0;
     public const CONSO_ENERGIE_KWH_M2_J = 0.25;
 
+    /**
+     * Vues du front (Docs/API_REQUETES_FRONT.md) : fenêtres d'historique du journal et seuils de priorité.
+     * Ces seuils sont métier : ils ne vivent qu'ici, le front ne fait qu'afficher la priorité renvoyée.
+     *  - Prévisionnel (R13) : couverture de l'horizon < 25 % → urgente, < 60 % → moyenne ;
+     *  - Agriculture (R18) : autonomie < 15 j → urgente, < 30 j → moyenne ; jauge pleine à 45 j.
+     */
+    public const HISTORIQUE_PREVISION_JOURS = 28;
+    public const HISTORIQUE_AGRICULTURE_JOURS = 30;
+    public const PRODUCTION_SEUIL_URGENTE_PCT = 25;
+    public const PRODUCTION_SEUIL_MOYENNE_PCT = 60;
+    public const PLANTATION_SEUIL_URGENTE_JOURS = 15;
+    public const PLANTATION_SEUIL_MOYENNE_JOURS = 30;
+    public const AUTONOMIE_CIBLE_JOURS = 45;
+
     /** Catégories de recettes qui ne sont pas des repas (ingrédients intermédiaires). */
     public const CATEGORIES_RECETTE_NON_REPAS = ['reutilisationbiomasse', 'valorisationzerodechet'];
 
