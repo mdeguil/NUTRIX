@@ -133,14 +133,14 @@ class MoteurCalculIntegrationTest extends KernelTestCase
 
         self::assertSame(540.0, $r['apport']['kcal']); // 300 g × 180 kcal/100 g
         self::assertSame(6, $this->compter('JOURNAL_REPAS'));
-        self::assertSame(['equipage_id' => 2, 'recette_id' => 5, 'portion_g' => 300.0], ['equipage_id' => (int) $this->journal($r['id'])['Id_Equipage'], 'recette_id' => (int) $this->journal($r['id'])['Id_Recette'], 'portion_g' => (float) $this->journal($r['id'])['portion_g']]);
+        self::assertSame(['equipage_id' => 2, 'recette_id' => 5, 'portion_g' => 300.0], ['equipage_id' => (int) $this->journal($r['id'])['id_equipage'], 'recette_id' => (int) $this->journal($r['id'])['id_recette'], 'portion_g' => (float) $this->journal($r['id'])['portion_g']]);
 
         // 300 g de lait sortis du lot 4 (seul lot courant), tracés et reliés à la recette.
         self::assertSame([['lot_id' => 4, 'quantite_g' => 300.0, 'date_peremption' => '2027-01-15']], $r['sorties_stock'][0]['sorties']);
         self::assertEquals(11700.0, (float) $this->connexion->fetchOne('SELECT quantite_disponible_g FROM LOT_STOCK WHERE Id_LOT_STOCK = 4'));
         $mouvement = $this->connexion->fetchAssociative('SELECT * FROM MOUVEMENT_STOCK ORDER BY Id_MOUVEMENT_STOCK DESC LIMIT 1');
-        self::assertSame(['Sortie', 300.0, 4], [$mouvement['type_mouvement'], (float) $mouvement['quantite_g'], (int) $mouvement['Id_LOT_STOCK']]);
-        self::assertSame(1, (int) $this->connexion->fetchOne('SELECT COUNT(*) FROM Asso_11 WHERE Id_Recette = 5 AND Id_MOUVEMENT_STOCK = ?', [$mouvement['Id_MOUVEMENT_STOCK']]));
+        self::assertSame(['Sortie', 300.0, 4], [$mouvement['type_mouvement'], (float) $mouvement['quantite_g'], (int) $mouvement['id_lot_stock']]);
+        self::assertSame(1, (int) $this->connexion->fetchOne('SELECT COUNT(*) FROM Asso_11 WHERE Id_Recette = 5 AND Id_MOUVEMENT_STOCK = ?', [$mouvement['id_mouvement_stock']]));
 
         // Le stock relu tient compte de la sortie.
         self::assertSame(['LAIT_POUDRE' => 11700.0], $this->stock->disponible($this->donnees->charger(), new \DateTimeImmutable(MoteurTestCase::DATE_REFERENCE)));

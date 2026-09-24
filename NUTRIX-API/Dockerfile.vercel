@@ -6,7 +6,7 @@ FROM dunglas/frankenphp:1-php8.4-bookworm AS base
 RUN install-php-extensions \
     intl \
     zip \
-    pdo_mysql \
+    pdo_pgsql \
     mbstring \
     ctype \
     opcache
@@ -33,14 +33,23 @@ ENV APP_SECRET=build-placeholder
 ENV JWT_SECRET_KEY=build-placeholder
 ENV JWT_PUBLIC_KEY=build-placeholder
 ENV JWT_PASSPHRASE=build-placeholder
-ENV DATABASE_URL="mysql://user:pass@127.0.0.1:3306/db?serverVersion=8.0.32&charset=utf8mb4"
+ENV DATABASE_URL="postgresql://user:pass@127.0.0.1:5432/db?serverVersion=16&charset=utf8"
 ENV CORS_ALLOW_ORIGIN='^$'
 ENV DEFAULT_URI=http://localhost
 
 # dump-env avec --empty genere .env.local.php sans figer de valeur en dur dans l'image.
+# assets:install/importmap:install sont normalement lances par les scripts post-install de Composer
+# (auto-scripts), desactives ici via --no-scripts : il faut donc les rejouer explicitement, sinon
+# public/bundles/ (assets Swagger UI d'API Platform, /api/docs) et assets/vendor/ restent absents.
+# asset-map:compile est indispensable en prod : AssetMapper ne sert les fichiers /assets/... via PHP
+# qu'en dev, en prod il faut les precompiler en fichiers statiques (public/assets/) servis par Caddy,
+# sinon toutes les URLs versionnees (asset() Twig) renvoient 404.
 RUN composer dump-autoload --classmap-authoritative --no-dev \
     && composer dump-env prod --empty \
-    && php bin/console cache:clear --env=prod --no-debug
+    && php bin/console cache:clear --env=prod --no-debug \
+    && php bin/console assets:install public --env=prod --no-debug \
+    && php bin/console importmap:install --env=prod --no-debug \
+    && php bin/console asset-map:compile --env=prod --no-debug
 
 
 FROM base AS runtime
@@ -55,3 +64,8 @@ COPY Caddyfile /etc/caddy/Caddyfile
 RUN chown -R www-data:www-data /app/var
 
 EXPOSE 80
+
+# Les cles JWT ne sont jamais commitees (.gitignore) : elles sont fournies en base64 par les
+# variables d'environnement Vercel (JWT_PRIVATE_KEY_B64 / JWT_PUBLIC_KEY_B64) et decodees ici,
+# au demarrage du conteneur, avant de lancer FrankenPHP.
+CMD ["sh", "-c", "mkdir -p /app/config/jwt && if [ -n \"$JWT_PRIVATE_KEY_B64\" ]; then echo \"$JWT_PRIVATE_KEY_B64\" | base64 -d > /app/config/jwt/private.pem; fi && if [ -n \"$JWT_PUBLIC_KEY_B64\" ]; then echo \"$JWT_PUBLIC_KEY_B64\" | base64 -d > /app/config/jwt/public.pem; fi && exec frankenphp run --config /etc/caddy/Caddyfile"]

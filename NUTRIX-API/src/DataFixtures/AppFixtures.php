@@ -139,14 +139,14 @@ class AppFixtures extends Fixture
         ]);
 
         $this->insertAll($connection, 'recette_ingredient', [
-            ['Id_Aliment' => 'RIZ', 'Id_Recette' => 1],
-            ['Id_Aliment' => 'HARICOT_ROUGE', 'Id_Recette' => 1],
-            ['Id_Aliment' => 'OEUF_POUDRE', 'Id_Recette' => 2],
-            ['Id_Aliment' => 'LAIT_POUDRE', 'Id_Recette' => 2],
-            ['Id_Aliment' => 'POMME_TERRE', 'Id_Recette' => 3],
-            ['Id_Aliment' => 'TOMATE', 'Id_Recette' => 4],
-            ['Id_Aliment' => 'SALADE', 'Id_Recette' => 4],
-            ['Id_Aliment' => 'LAIT_POUDRE', 'Id_Recette' => 5],
+            ['Id_Aliment' => 'RIZ', 'Id_Recette' => 1, 'quantite_g' => 0],
+            ['Id_Aliment' => 'HARICOT_ROUGE', 'Id_Recette' => 1, 'quantite_g' => 0],
+            ['Id_Aliment' => 'OEUF_POUDRE', 'Id_Recette' => 2, 'quantite_g' => 0],
+            ['Id_Aliment' => 'LAIT_POUDRE', 'Id_Recette' => 2, 'quantite_g' => 0],
+            ['Id_Aliment' => 'POMME_TERRE', 'Id_Recette' => 3, 'quantite_g' => 0],
+            ['Id_Aliment' => 'TOMATE', 'Id_Recette' => 4, 'quantite_g' => 0],
+            ['Id_Aliment' => 'SALADE', 'Id_Recette' => 4, 'quantite_g' => 0],
+            ['Id_Aliment' => 'LAIT_POUDRE', 'Id_Recette' => 5, 'quantite_g' => 0],
         ]);
 
         $this->insertAll($connection, 'Asso_11', [
@@ -159,6 +159,43 @@ class AppFixtures extends Fixture
             ['Id_Equipage' => 3, 'Id_ALLERGENE' => 1],
             ['Id_Equipage' => 4, 'Id_ALLERGENE' => 3],
         ]);
+
+        $this->resynchroniserSequences($connection);
+    }
+
+    /**
+     * PostgreSQL ne fait pas le lien entre une valeur d'identifiant inseree explicitement (comme
+     * ci-dessus) et la sequence qui genere les valeurs par defaut : sans resynchronisation, le
+     * prochain INSERT sans identifiant explicite retente une valeur deja prise (violation de la
+     * contrainte unique). On recale chaque sequence sur le MAX() reellement present en base.
+     */
+    private function resynchroniserSequences(Connection $connection): void
+    {
+        $colonnesParTable = [
+            'unite_stock' => 'Id_unite_stock',
+            'Categorie_ingredient' => 'Id_Categorie_ingredient',
+            'categorie_recette' => 'Id_categorie_recette',
+            'Activity_label' => 'Id_Activity_label',
+            'ALLERGENE' => 'Id_ALLERGENE',
+            'type_repas' => 'Id_type_repas',
+            'Recette' => 'Id_Recette',
+            'RECOLTE' => 'Id_RECOLTE',
+            'LOT_STOCK' => 'Id_LOT_STOCK',
+            'MOUVEMENT_STOCK' => 'Id_MOUVEMENT_STOCK',
+            'Equipage' => 'Id_Equipage',
+            'JOURNAL_REPAS' => 'Id_JOURNAL_REPAS',
+            'PLANNING_REPAS' => 'Id_PLANNING_REPAS',
+            'PLANNING_REPAS_OCCUPANT' => 'Id_PLANNING_REPAS_OCCUPANT',
+        ];
+
+        foreach ($colonnesParTable as $table => $colonne) {
+            // pg_get_serial_sequence() prend le nom de table/colonne comme texte litteral (pas comme
+            // identifiant SQL) : pas de repli automatique en minuscules, il faut le nom reel stocke.
+            $connection->executeStatement(sprintf(
+                "SELECT setval(pg_get_serial_sequence('%s', '%s'), COALESCE((SELECT MAX(%s) FROM %s), 1), (SELECT MAX(%s) IS NOT NULL FROM %s))",
+                strtolower($table), strtolower($colonne), $colonne, $table, $colonne, $table
+            ));
+        }
     }
 
     /** @return array<string, int> id des comptes de demo crees, par username */
@@ -190,9 +227,12 @@ class AppFixtures extends Fixture
         return array_map(static fn (User $u) => $u->getId(), $ids);
     }
 
+    /**
+     * Supprime dans l'ordre enfant -> parent (pas de desactivation des FK, qui n'a pas
+     * d'equivalent portable MySQL/PostgreSQL : cet ordre suffit tel quel).
+     */
     private function clear(Connection $connection): void
     {
-        $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
         foreach ([
             'OCCUPANT_ALLERGIE', 'Asso_11', 'recette_ingredient', 'PLANNING_REPAS_OCCUPANT',
             'PLANNING_REPAS', 'JOURNAL_REPAS', 'Equipage', 'MOUVEMENT_STOCK', 'LOT_STOCK',
@@ -201,7 +241,6 @@ class AppFixtures extends Fixture
         ] as $table) {
             $connection->executeStatement("DELETE FROM $table");
         }
-        $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
     }
 
     /**

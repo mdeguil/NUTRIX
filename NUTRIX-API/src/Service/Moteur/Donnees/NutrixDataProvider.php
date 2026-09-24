@@ -63,18 +63,27 @@ class NutrixDataProvider
     {
         $d = new DonneesVaisseau($aujourdhui);
         $d->planningOccupantLie = $planningOccupantLie;
-        $t = static fn (string $nom): array => $tables[$nom] ?? [];
+        // Les cles des lignes retournees dependent du pilote (MySQL preserve la casse ecrite dans le
+        // CREATE TABLE, PostgreSQL replie tout identifiant non quote en minuscules). On normalise donc
+        // systematiquement en minuscules ici, une seule fois, plutot que de gerer la casse partout.
+        $normaliser = static fn (array $r): array => array_change_key_case($r, CASE_LOWER);
+        $t = static fn (string $nom): array => array_map($normaliser, $tables[$nom] ?? []);
+        $optionnelle = static function (string $nom) use ($tables, $normaliser): ?array {
+            $rows = $tables[$nom] ?? null;
+
+            return null !== $rows ? array_map($normaliser, $rows) : null;
+        };
 
         foreach ($t('ALLERGENE') as $r) {
-            $d->allergenes[(int) $r['Id_ALLERGENE']] = ['id' => (int) $r['Id_ALLERGENE'], 'libelle' => $r['libelle'], 'cle' => Texte::cle($r['libelle'])];
+            $d->allergenes[(int) $r['id_allergene']] = ['id' => (int) $r['id_allergene'], 'libelle' => $r['libelle'], 'cle' => Texte::cle($r['libelle'])];
         }
 
         $allergiesParEquipage = [];
         foreach ($t('OCCUPANT_ALLERGIE') as $r) {
-            $allergiesParEquipage[(int) $r['Id_Equipage']][] = (int) $r['Id_ALLERGENE'];
+            $allergiesParEquipage[(int) $r['id_equipage']][] = (int) $r['id_allergene'];
         }
         foreach ($t('Equipage') as $r) {
-            $id = (int) $r['Id_Equipage'];
+            $id = (int) $r['id_equipage'];
             $d->equipages[$id] = [
                 'id' => $id,
                 'sexe' => (bool) $r['sexe'],
@@ -86,34 +95,34 @@ class NutrixDataProvider
             ];
         }
 
-        $categoriesIngredient = array_column($t('Categorie_ingredient'), 'Libelle', 'Id_Categorie_ingredient');
+        $categoriesIngredient = array_column($t('Categorie_ingredient'), 'libelle', 'id_categorie_ingredient');
         foreach ($t('Aliment') as $r) {
-            $d->aliments[$r['Id_Aliment']] = [
-                'id' => $r['Id_Aliment'],
-                'libelle' => $r['Libelle'],
+            $d->aliments[$r['id_aliment']] = [
+                'id' => $r['id_aliment'],
+                'libelle' => $r['libelle'],
                 'pour100g' => [
-                    'kcal' => (float) $r['Kcal_100g'],
-                    'proteines_g' => (float) $r['Proteines_100g'],
-                    'glucides_g' => (float) $r['Glucides_100g'],
-                    'lipides_g' => (float) $r['Lipides_100g'],
-                    'fibres_g' => (float) $r['Fibres_100g'],
+                    'kcal' => (float) $r['kcal_100g'],
+                    'proteines_g' => (float) $r['proteines_100g'],
+                    'glucides_g' => (float) $r['glucides_100g'],
+                    'lipides_g' => (float) $r['lipides_100g'],
+                    'fibres_g' => (float) $r['fibres_100g'],
                 ],
-                'cycle_min' => (int) $r['Cycle_jours_min'],
-                'cycle_max' => (int) $r['Cycle_jours_max'],
+                'cycle_min' => (int) $r['cycle_jours_min'],
+                'cycle_max' => (int) $r['cycle_jours_max'],
                 'rendement_g_m2_j' => null !== $r['rendement_g_m2_j'] ? (float) $r['rendement_g_m2_j'] : null,
-                'categorie' => Texte::cle($categoriesIngredient[$r['Id_Categorie_ingredient']] ?? null),
+                'categorie' => Texte::cle($categoriesIngredient[$r['id_categorie_ingredient']] ?? null),
             ];
         }
 
         $ingredients = [];
         foreach ($t('recette_ingredient') as $r) {
             // quantite_g vaut 0 par défaut en base (colonne absente des fixtures).
-            $ingredients[(int) $r['Id_Recette']][$r['Id_Aliment']] = (float) ($r['quantite_g'] ?? 0);
+            $ingredients[(int) $r['id_recette']][$r['id_aliment']] = (float) ($r['quantite_g'] ?? 0);
         }
-        $categoriesRecette = array_column($t('categorie_recette'), 'libelle', 'Id_categorie_recette');
+        $categoriesRecette = array_column($t('categorie_recette'), 'libelle', 'id_categorie_recette');
         foreach ($t('Recette') as $r) {
-            $id = (int) $r['Id_Recette'];
-            $categorie = null !== $r['Id_categorie_recette'] ? (int) $r['Id_categorie_recette'] : null;
+            $id = (int) $r['id_recette'];
+            $categorie = null !== $r['id_categorie_recette'] ? (int) $r['id_categorie_recette'] : null;
             $d->recettes[$id] = [
                 'id' => $id,
                 'libelle' => $r['libelle'],
@@ -132,41 +141,41 @@ class NutrixDataProvider
         }
 
         foreach ($t('type_repas') as $r) {
-            $d->typesRepas[(int) $r['Id_type_repas']] = ['id' => (int) $r['Id_type_repas'], 'libelle' => (string) $r['libelle'], 'cle' => Texte::cle($r['libelle'])];
+            $d->typesRepas[(int) $r['id_type_repas']] = ['id' => (int) $r['id_type_repas'], 'libelle' => (string) $r['libelle'], 'cle' => Texte::cle($r['libelle'])];
         }
 
         foreach ($t('LOT_STOCK') as $r) {
             $d->lots[] = [
-                'id' => (int) $r['Id_LOT_STOCK'],
-                'aliment' => $r['Id_Aliment'],
+                'id' => (int) $r['id_lot_stock'],
+                'aliment' => $r['id_aliment'],
                 'quantite_initiale_g' => (float) $r['quantite_initiale_g'],
                 'quantite_g' => (float) $r['quantite_disponible_g'],
                 'date_entree' => new \DateTimeImmutable($r['date_entree']),
                 'date_peremption' => $r['date_peremption'] ? new \DateTimeImmutable($r['date_peremption']) : null,
                 'type_reserve' => Texte::cle($r['type_reserve']),
                 'statut' => Texte::cle($r['statut']),
-                'recolte_id' => null !== $r['Id_RECOLTE'] ? (int) $r['Id_RECOLTE'] : null,
+                'recolte_id' => null !== $r['id_recolte'] ? (int) $r['id_recolte'] : null,
             ];
         }
 
         $recettesParMouvement = [];
         foreach ($t('Asso_11') as $r) {
-            $recettesParMouvement[(int) $r['Id_MOUVEMENT_STOCK']][] = (int) $r['Id_Recette'];
+            $recettesParMouvement[(int) $r['id_mouvement_stock']][] = (int) $r['id_recette'];
         }
         foreach ($t('MOUVEMENT_STOCK') as $r) {
-            $id = (int) $r['Id_MOUVEMENT_STOCK'];
+            $id = (int) $r['id_mouvement_stock'];
             $d->mouvements[] = [
                 'id' => $id,
                 'type' => Texte::cle($r['type_mouvement']),
                 'quantite_g' => (float) $r['quantite_g'],
                 'date' => new \DateTimeImmutable($r['date_mouvement']),
-                'lot_id' => (int) $r['Id_LOT_STOCK'],
+                'lot_id' => (int) $r['id_lot_stock'],
                 'recettes' => $recettesParMouvement[$id] ?? [],
             ];
         }
 
         foreach ($t('RECOLTE') as $r) {
-            $id = (int) $r['Id_RECOLTE'];
+            $id = (int) $r['id_recolte'];
             $d->recoltes[$id] = [
                 'id' => $id,
                 'module' => $r['module_culture'],
@@ -178,29 +187,29 @@ class NutrixDataProvider
                 'statut' => Texte::cle($r['statut']),
                 // taux_perte_pct est stocké en pourcentage (6.00 = 6 %).
                 'taux_perte' => null !== $r['taux_perte_pct'] ? (float) $r['taux_perte_pct'] / 100 : null,
-                'aliment' => $r['Id_Aliment'],
+                'aliment' => $r['id_aliment'],
             ];
         }
 
         $occupants = [];
         if ($planningOccupantLie) {
             foreach ($t('PLANNING_REPAS_OCCUPANT') as $r) {
-                if (null !== ($r['Id_PLANNING_REPAS'] ?? null)) {
-                    $occupants[(int) $r['Id_PLANNING_REPAS']][] = [
-                        'equipage_id' => (int) $r['Id_Equipage'],
+                if (null !== ($r['id_planning_repas'] ?? null)) {
+                    $occupants[(int) $r['id_planning_repas']][] = [
+                        'equipage_id' => (int) $r['id_equipage'],
                         'portion_ratio' => null !== $r['portion_ratio'] ? (float) $r['portion_ratio'] : null,
                     ];
                 }
             }
         }
         foreach ($t('PLANNING_REPAS') as $r) {
-            $id = (int) $r['Id_PLANNING_REPAS'];
+            $id = (int) $r['id_planning_repas'];
             $d->planning[] = [
                 'id' => $id,
                 'date' => new \DateTimeImmutable($r['date_']),
                 'portions' => (float) $r['portions_prevues'],
                 'type_repas' => Texte::cle($r['type_repas']),
-                'recette_id' => (int) $r['Id_Recette'],
+                'recette_id' => (int) $r['id_recette'],
                 'occupants' => $planningOccupantLie ? ($occupants[$id] ?? []) : null,
             ];
         }
@@ -208,29 +217,31 @@ class NutrixDataProvider
 
         foreach ($t('JOURNAL_REPAS') as $r) {
             $d->journal[] = [
-                'id' => (int) $r['Id_JOURNAL_REPAS'],
+                'id' => (int) $r['id_journal_repas'],
                 'date_heure' => new \DateTimeImmutable($r['date_heure']),
                 'portion_g' => null !== $r['portion_g'] ? (float) $r['portion_g'] : null,
-                'recette_id' => (int) $r['Id_Recette'],
-                'equipage_id' => (int) $r['Id_Equipage'],
-                'type_repas_id' => (int) $r['Id_type_repas'],
+                'recette_id' => (int) $r['id_recette'],
+                'equipage_id' => (int) $r['id_equipage'],
+                'type_repas_id' => (int) $r['id_type_repas'],
             ];
         }
         usort($d->journal, static fn ($a, $b) => $a['date_heure'] <=> $b['date_heure']);
 
-        if (null !== ($tables['ALIMENT_ALLERGENE'] ?? null)) {
+        $alimentAllergene = $optionnelle('ALIMENT_ALLERGENE');
+        if (null !== $alimentAllergene) {
             $d->alimentAllergenes = [];
-            foreach ($tables['ALIMENT_ALLERGENE'] as $r) {
-                $d->alimentAllergenes[$r['Id_Aliment']][] = (int) $r['Id_ALLERGENE'];
+            foreach ($alimentAllergene as $r) {
+                $d->alimentAllergenes[$r['id_aliment']][] = (int) $r['id_allergene'];
             }
         }
 
-        if (null !== ($tables['RECETTE_TYPE_REPAS'] ?? null)) {
+        $recetteTypeRepas = $optionnelle('RECETTE_TYPE_REPAS');
+        if (null !== $recetteTypeRepas) {
             $d->recetteCreneaux = [];
-            foreach ($tables['RECETTE_TYPE_REPAS'] as $r) {
-                $type = $d->typesRepas[(int) $r['Id_type_repas']] ?? null;
+            foreach ($recetteTypeRepas as $r) {
+                $type = $d->typesRepas[(int) $r['id_type_repas']] ?? null;
                 if (null !== $type) {
-                    $d->recetteCreneaux[(int) $r['Id_Recette']][] = $type['cle'];
+                    $d->recetteCreneaux[(int) $r['id_recette']][] = $type['cle'];
                 }
             }
         }

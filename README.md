@@ -49,7 +49,7 @@ Ce dépôt contient l'**API REST** du projet, en Symfony + API Platform. Elle fa
 | Framework | Symfony 7.4 |
 | API REST | API Platform 5 (JSON-LD / Hydra, OpenAPI) |
 | ORM / migrations | Doctrine ORM 3, Doctrine Migrations |
-| Base de données | MySQL 8, hébergée, partagée par l'équipe et déjà remplie |
+| Base de données | PostgreSQL 16 (Supabase), hébergée, partagée par l'équipe et déjà remplie |
 | Référentiel nutritionnel | Valeurs de référence EFSA (version 4, 2017) dans [`efsa_drv_reference.json`](./NUTRIX-API/config/nutrix/efsa_drv_reference.json) |
 | Authentification | JWT via `lexik/jwt-authentication-bundle` |
 | CORS | `nelmio/cors-bundle` |
@@ -85,7 +85,7 @@ Client (front, curl, Postman…)
 │        Doctrine ORM  +  migrations (migrations/)         │
 └─────────────────────────────┬────────────────────────────┘
                               ▼
-                  MySQL (base hébergée et remplie)
+                  PostgreSQL / Supabase (base hébergée et remplie)
 ```
 
 Il y a deux types de routes :
@@ -253,10 +253,10 @@ curl -X POST http://127.0.0.1:8000/api/register \
 
 ### Prérequis
 
-- PHP ≥ 8.2 avec les extensions `intl`, `pdo_mysql`, `mbstring` et `openssl`
+- PHP ≥ 8.2 avec les extensions `intl`, `pdo_pgsql`, `mbstring` et `openssl`
 - [Composer](https://getcomposer.org/)
 - [Symfony CLI](https://symfony.com/download)
-- Les identifiants de la base MySQL hébergée. **Il n'y a pas de base locale** : toute l'équipe travaille sur la même base, déjà remplie. Demandez le `DATABASE_URL` à l'équipe.
+- Les identifiants de la base PostgreSQL hébergée sur Supabase. **Il n'y a pas de base locale** : toute l'équipe travaille sur la même base, déjà remplie. Demandez le `DATABASE_URL` à l'équipe.
 
 ### Installation manuelle
 
@@ -274,7 +274,7 @@ cp .env.local.example .env.local
 Complétez ensuite `.env.local` :
 
 ```dotenv
-DATABASE_URL="mysql://USER:PASSWORD@HOTE:3306/NOM_BASE?serverVersion=8.0.32&charset=utf8mb4"
+DATABASE_URL="postgresql://USER:PASSWORD@HOTE_SUPABASE:5432/NOM_BASE?serverVersion=16&charset=utf8"
 APP_SECRET=<chaîne aléatoire>
 JWT_PASSPHRASE=<chaîne aléatoire>
 ```
@@ -327,7 +327,7 @@ La CI (`.github/workflows/ci.yml`) se lance à chaque push et à chaque PR vers 
 1. installe PHP 8.2 et les dépendances Composer ;
 2. vérifie la syntaxe PHP de `src/` et le YAML de `config/` ;
 3. génère les clés JWT ;
-4. applique les migrations sur un conteneur MySQL 8 jetable, propre au run ;
+4. applique les migrations sur un conteneur PostgreSQL 16 jetable, propre au run ;
 5. exécute `php bin/phpunit`.
 
 La CI a besoin de deux secrets GitHub, à définir dans **Settings → Secrets and variables → Actions** : `APP_SECRET` et `JWT_PASSPHRASE`. S'ils manquent, le job échoue avec `Environment variable not found`.

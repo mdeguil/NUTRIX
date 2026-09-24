@@ -18,22 +18,20 @@ jobs:
       JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
 
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:16
         env:
           # Doctrine applique dbname_suffix "_test" en env=test (config/packages/doctrine.yaml) :
-          # la base reellement ciblee est nutrix_test, pas nutrix. Le compte MYSQL_USER n'a de droits
-          # que sur MYSQL_DATABASE a la creation du conteneur : on cree donc directement nutrix_test,
-          # sinon "doctrine:database:create --env=test" echoue en Access denied (droits insuffisants
-          # pour creer une base que Doctrine, lui, considere comme suffixee).
-          MYSQL_DATABASE: nutrix_test
-          MYSQL_USER: nutrix
-          MYSQL_PASSWORD: nutrix
-          MYSQL_ROOT_PASSWORD: root
+          # la base reellement ciblee est nutrix_test, pas nutrix. On cree directement nutrix_test
+          # comme POSTGRES_DB pour que "doctrine:database:create" n'ait rien a faire (le role
+          # postgres/nutrix cree par l'image a de toute facon tous les droits sur sa propre base).
+          POSTGRES_DB: nutrix_test
+          POSTGRES_USER: nutrix
+          POSTGRES_PASSWORD: nutrix
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping -h localhost -u root -proot"
+          --health-cmd="pg_isready -U nutrix -d nutrix_test"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
@@ -45,7 +43,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, intl, pdo_mysql
+          extensions: mbstring, intl, pdo_pgsql
           coverage: none
 
       - name: Cache Composer dependencies

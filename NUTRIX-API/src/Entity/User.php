@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
  * Expose ici principalement pour permettre la relation Equipage.user (IRI /api/users/{id}).
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'app_user')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
 #[ApiResource(
     openapi: false,
